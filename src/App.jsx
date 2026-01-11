@@ -1,4 +1,10 @@
 import { useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { FaGithub, FaLinkedin, FaEnvelope, FaReact, FaNode, FaDatabase, FaDocker, FaPython, FaJava, FaAward, FaRocket, FaCode, FaServer, FaTools, FaChartLine } from 'react-icons/fa'
+import { SiMongodb, SiPostgresql, SiMysql, SiExpress, SiNextdotjs, SiTailwindcss, SiTypescript, SiRedis, SiJavascript, SiC, SiCplusplus, SiPhp, SiR, SiPostman, SiFigma, SiAndroidstudio, SiApache, SiXampp } from 'react-icons/si'
+import { HiOutlineMail, HiLocationMarker } from 'react-icons/hi'
+import { BsArrowRight } from 'react-icons/bs'
+import portfolioPic from './img/portfolio_pic.jpg'
 import './App.css'
 
 function App() {
@@ -15,10 +21,30 @@ function App() {
     });
   }, []);
 
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
   return (
     <div className="portfolio">
       {/* Navigation */}
-      <nav className="navbar">
+      <motion.nav 
+        className="navbar"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="nav-container">
           <h2 className="logo">K B P Kavisika</h2>
           <ul className="nav-menu">
@@ -26,97 +52,146 @@ function App() {
             <li><a href="#about">About</a></li>
             <li><a href="#skills">Skills</a></li>
             <li><a href="#projects">Projects</a></li>
-            <li><a href="#achievements">Achievements</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero Section */}
       <section id="home" className="hero">
-        <div className="hero-content">
-          <p className="hero-greeting">Hello, I'm</p>
-          <h1 className="hero-title"><span className="highlight">K B P Kavisika</span></h1>
-          <p className="hero-description">
+        <div className="hero-container">
+          <motion.div 
+            className="hero-photo"
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <div className="photo-container">
+              <img src={portfolioPic} alt="K B P Kavisika" className="profile-photo" />
+              <div className="photo-ring"></div>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="hero-content"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+          <motion.p className="hero-greeting" variants={fadeInUp}>Hello, I'm</motion.p>
+          <motion.h1 className="hero-title" variants={fadeInUp}><span className="highlight">K B P Kavisika</span></motion.h1>
+          <motion.p className="hero-description" variants={fadeInUp}>
             Building innovative solutions that bridge technology and real-world impact.
             Specialized in scalable web applications and disaster management systems.
-          </p>
-          <div className="hero-buttons">
-            <a href="#projects" className="btn btn-primary">Explore Projects</a>
-            <a href="#contact" className="btn btn-secondary">Get In Touch</a>
-          </div>
+          </motion.p>
+          <motion.div className="hero-buttons" variants={fadeInUp}>
+            <a href="#projects" className="btn btn-primary">Explore Projects <BsArrowRight /></a>
+            <a href="#contact" className="btn btn-secondary"><HiOutlineMail /> Get In Touch</a>
+          </motion.div>
+        </motion.div>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="about">
+      <motion.section 
+        id="about" 
+        className="about"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={staggerContainer}
+      >
         <div className="container">
-          <h2 className="section-title">About Me</h2>
-          <div className="about-content">
+          <motion.h2 className="section-title" variants={fadeInUp}>About Me</motion.h2>
+          <motion.div className="about-content" variants={fadeInUp}>
             <div className="about-text">
               <p className="intro-text">
-                I'm a passionate Full Stack Developer specializing in the <strong>MERN stack</strong> with a proven 
-                track record of building scalable, impactful web applications. With expertise spanning from disaster 
-                management platforms to AI-powered SaaS solutions, I thrive on solving complex challenges with 
-                innovative technology.
+                I am a motivated Software Engineering undergraduate at SLIIT with a strong interest in building 
+                scalable, real-world software solutions. I enjoy developing user-focused applications and working 
+                across the full stack using modern technologies. Through academic projects, hackathons, and 
+                team-based development, I have gained hands-on experience in web applications, APIs, databases, 
+                and cloud-ready systems.
               </p>
               <p>
-                My development approach combines robust backend architecture with intuitive frontend design, 
-                ensuring every solution is both technically sound and user-centric. I have hands-on experience 
-                with modern technologies including React, Node.js, TypeScript, Docker, and various database systems.
-              </p>
-              <p>
-                As a <strong>hackathon winner</strong> (1st Runners Up at SLIIT Codefest 2025) and finalist in multiple 
-                prestigious competitions, I bring a competitive edge and problem-solving mindset to every project. 
-                I'm currently contributing to ZerraLabs, developing AI-driven product photography solutions.
+                I am adaptable, quick to learn new technologies, and comfortable working in collaborative 
+                environments. I enjoy solving complex problems and delivering reliable, maintainable solutions. 
+                Currently, I am focused on strengthening my skills in full-stack development, system design, and 
+                AI-powered applications while preparing for industry internships and entry-level roles.
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Skills Section */}
-      <section id="skills" className="skills">
+      <motion.section 
+        id="skills" 
+        className="skills"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={staggerContainer}
+      >
         <div className="container">
-          <h2 className="section-title">Skills</h2>
-          <div className="skills-grid">
-            <div className="skill-card">
+          <motion.h2 className="section-title" variants={fadeInUp}>
+            <FaCode className="section-icon" /> Skills
+          </motion.h2>
+          <motion.div className="skills-grid" variants={staggerContainer}>
+            <motion.div className="skill-card" variants={fadeInUp}>
+              <div className="skill-icon"><FaCode /></div>
               <h3>Programming Languages</h3>
               <ul>
-                <li>Java, Python, C, C++</li>
-                <li>JavaScript, TypeScript, R</li>
-                <li>PHP, SQL, Bash</li>
-                <li>React.js, Node.js, Express.js</li>
+                <li><FaJava /> Java</li>
+                <li><FaPython /> Python</li>
+                <li><SiC /> C, <SiCplusplus /> C++</li>
+                <li><SiJavascript /> <SiTypescript /> JavaScript, TypeScript</li>
+                <li><SiPhp /> PHP, SQL, Bash</li>
+                <li><FaReact /> React.js</li>
+                <li><FaNode /> Node.js</li>
+                <li><SiExpress /> Express.js</li>
+                <li><SiR /> R</li>
               </ul>
-            </div>
-            <div className="skill-card">
+            </motion.div>
+            <motion.div className="skill-card" variants={fadeInUp}>
+              <div className="skill-icon"><FaDatabase /></div>
               <h3>Databases</h3>
               <ul>
-                <li>MySQL</li>
-                <li>MongoDB</li>
-                <li>PostgreSQL</li>
-                <li>Redis</li>
+                <li><SiMysql /> MySQL</li>
+                <li><SiMongodb /> MongoDB</li>
+                <li><SiPostgresql /> PostgreSQL</li>
               </ul>
-            </div>
-            <div className="skill-card">
+            </motion.div>
+            <motion.div className="skill-card" variants={fadeInUp}>
+              <div className="skill-icon"><FaTools /></div>
               <h3>Tools & Platforms</h3>
               <ul>
-                <li>Git & GitHub</li>
-                <li>Docker, Postman</li>
-                <li>Apache Tomcat, XAMPP</li>
-                <li>Figma, Android Studio</li>
+                <li><FaGithub /> Git & GitHub</li>
+                <li><SiPostman /> Postman</li>
+                <li><SiXampp /> XAMPP</li>
+                <li><SiApache /> Apache Tomcat</li>
+                <li><FaDocker /> Docker</li>
+                <li><SiFigma /> Figma</li>
+                <li><SiAndroidstudio /> Android Studio</li>
               </ul>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Projects Section */}
-      <section id="projects" className="projects">
+      <motion.section 
+        id="projects" 
+        className="projects"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={staggerContainer}
+      >
         <div className="container">
-          <h2 className="section-title">Projects</h2>
-          <div className="projects-grid">
-            <div className="project-card featured">
+          <motion.h2 className="section-title" variants={fadeInUp}>
+            <FaRocket className="section-icon" /> Projects
+          </motion.h2>
+          <motion.div className="projects-grid" variants={staggerContainer}>
+            <motion.div className="project-card featured" variants={fadeInUp} whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
               <div className="project-badge">🏆 Award Winning</div>
               <h3>ResQ – National Disaster Platform</h3>
               <p className="project-subtitle">1st Runners Up - SLIIT Codefest 2025 Revivenation</p>
@@ -129,10 +204,10 @@ function App() {
                 <span className="tag">REST API</span>
               </div>
               <div className="project-links">
-                <a href="https://github.com/disaster-response-sl/national-disaster-platform" target="_blank" rel="noopener noreferrer" className="project-link">View on GitHub →</a>
+                <a href="https://github.com/disaster-response-sl/national-disaster-platform" target="_blank" rel="noopener noreferrer" className="project-link"><FaGithub /> View on GitHub <BsArrowRight /></a>
               </div>
-            </div>
-            <div className="project-card">
+            </motion.div>
+            <motion.div className="project-card" variants={fadeInUp} whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
               <h3>ZFit – Gym Management System</h3>
               <p className="project-subtitle">Jul 2025 - Oct 2025</p>
               <p>Comprehensive gym management platform featuring payment processing, invoice generation, and refund handling. Built responsive member dashboards with attendance tracking and integrated PayHere payment gateway for secure subscription management.</p>
@@ -144,10 +219,10 @@ function App() {
                 <span className="tag">JWT</span>
               </div>
               <div className="project-links">
-                <a href="https://github.com/kbpkavisika/ZFit" target="_blank" rel="noopener noreferrer" className="project-link">View on GitHub →</a>
+                <a href="https://github.com/kbpkavisika/ZFit" target="_blank" rel="noopener noreferrer" className="project-link"><FaGithub /> View on GitHub <BsArrowRight /></a>
               </div>
-            </div>
-            <div className="project-card">
+            </motion.div>
+            <motion.div className="project-card" variants={fadeInUp} whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
               <h3>Ceylon Smart Citizen</h3>
               <p className="project-subtitle">Tech-Triathlon by Rootcode</p>
               <p>Digital governance solution serving 20+ citizen services including document requests, multilingual support, and queue reservations. Developed JWT-authenticated microservices with NIC verification and real-time queue management to reduce wait times and improve government service accessibility.</p>
@@ -159,10 +234,10 @@ function App() {
                 <span className="tag">Next.js</span>
               </div>
               <div className="project-links">
-                <a href="https://github.com/CeylonSmartCitizen" target="_blank" rel="noopener noreferrer" className="project-link">View on GitHub →</a>
+                <a href="https://github.com/CeylonSmartCitizen" target="_blank" rel="noopener noreferrer" className="project-link"><FaGithub /> View on GitHub <BsArrowRight /></a>
               </div>
-            </div>
-            <div className="project-card">
+            </motion.div>
+            <motion.div className="project-card" variants={fadeInUp} whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
               <h3>PlayNova – Online Game Store</h3>
               <p className="project-subtitle">Mar 2025 - Apr 2025</p>
               <p>Java-based e-commerce platform for gaming products. Implemented announcement management with full CRUD operations using MVC architecture. Applied Singleton design pattern for secure JDBC connections, ensuring scalable and maintainable code structure.</p>
@@ -174,10 +249,10 @@ function App() {
                 <span className="tag">Apache Tomcat</span>
               </div>
               <div className="project-links">
-                <a href="https://github.com/gaindunuhansith/playnova" target="_blank" rel="noopener noreferrer" className="project-link">View on GitHub →</a>
+                <a href="https://github.com/gaindunuhansith/playnova" target="_blank" rel="noopener noreferrer" className="project-link"><FaGithub /> View on GitHub <BsArrowRight /></a>
               </div>
-            </div>
-            <div className="project-card featured">
+            </motion.div>
+            <motion.div className="project-card featured" variants={fadeInUp} whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
               <div className="project-badge">🚀 In Development</div>
               <h3>ZerraLabs – AI Product Photography</h3>
               <p className="project-subtitle">Ongoing SaaS Project</p>
@@ -189,10 +264,10 @@ function App() {
                 <span className="tag">Deep Learning</span>
               </div>
               <div className="project-links">
-                <a href="https://zerralabs.com" target="_blank" rel="noopener noreferrer" className="project-link">Visit Website →</a>
+                <a href="https://zerralabs.com" target="_blank" rel="noopener noreferrer" className="project-link">Visit Website <BsArrowRight /></a>
               </div>
-            </div>
-            <div className="project-card">
+            </motion.div>
+            <motion.div className="project-card" variants={fadeInUp} whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
               <h3>Datathon – Public Service Optimization</h3>
               <p className="project-subtitle">Machine Learning Project</p>
               <p>Built predictive ML models for public service resource optimization. Developed service time prediction model achieving R² ~0.85 using HistGradientBoostingRegressor and workforce forecasting system with RandomForestRegressor (variance ~1-2 staff).</p>
@@ -203,48 +278,42 @@ function App() {
                 <span className="tag">NumPy</span>
               </div>
               <div className="project-links">
-                <a href="https://github.com/CeylonSmartCitizen" target="_blank" rel="noopener noreferrer" className="project-link">View on GitHub →</a>
+                <a href="https://github.com/CeylonSmartCitizen" target="_blank" rel="noopener noreferrer" className="project-link"><FaGithub /> View on GitHub <BsArrowRight /></a>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
-
-      {/* Achievements Section */}
-      <section id="achievements" className="achievements">
-        <div className="container">
-          <h2 className="section-title">Achievements</h2>
-          <div className="achievements-content">
-            <div className="achievement-item">
-              <h3>🥈 1st Runners Up</h3>
-              <p>SLIIT Codefest 2025 Revivenation Competition</p>
-            </div>
-            <div className="achievement-item">
-              <h3>🏆 3rd Round</h3>
-              <p>Tech Triathlon organized by Rootcode</p>
-            </div>
-            <div className="achievement-item">
-              <h3>🎯 Final Round</h3>
-              <p>HackX 10.0 - University of Kelaniya & Ministry of Science and Technology</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      </motion.section>
 
       {/* Contact Section */}
-      <section id="contact" className="contact">
+      <motion.section 
+        id="contact" 
+        className="contact"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={staggerContainer}
+      >
         <div className="container">
-          <h2 className="section-title">Get In Touch</h2>
-          <div className="contact-content">
+          <motion.h2 className="section-title" variants={fadeInUp}>
+            <HiOutlineMail className="section-icon" /> Get In Touch
+          </motion.h2>
+          <motion.div className="contact-content" variants={fadeInUp}>
             <p>I'm always open to discussing new projects, creative ideas, or opportunities.</p>
             <div className="contact-links">
-              <a href="mailto:your.email@example.com" className="contact-link">Email</a>
-              <a href="https://github.com/kbpkavisika" target="_blank" rel="noopener noreferrer" className="contact-link">GitHub</a>
-              <a href="https://www.linkedin.com/in/pavith-kavisika" target="_blank" rel="noopener noreferrer" className="contact-link">LinkedIn</a>
+              <a href="mailto:kbpkavisika@gmail.com" className="contact-link">
+                <FaEnvelope /> Email
+              </a>
+              <a href="https://github.com/kbpkavisika" target="_blank" rel="noopener noreferrer" className="contact-link">
+                <FaGithub /> GitHub
+              </a>
+              <a href="https://www.linkedin.com/in/pavith-kavisika" target="_blank" rel="noopener noreferrer" className="contact-link">
+                <FaLinkedin /> LinkedIn
+              </a>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="footer">
