@@ -1,115 +1,272 @@
-import { useState, useCallback, useRef } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
-import { FaGithub, FaLinkedin } from 'react-icons/fa'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FaGithub, FaLinkedin, FaJava, FaPython, FaReact, FaNodeJs, FaGit, FaDocker, FaDatabase, FaTerminal } from 'react-icons/fa'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs'
+import { SiJavascript, SiTypescript, SiExpress, SiNextdotjs, SiMysql, SiMongodb, SiPostgresql, SiPostman, SiApachetomcat, SiFigma, SiAndroidstudio, SiGnubash } from 'react-icons/si'
+import codefest1 from './img/codefest-1.jpg'
+import codefest2 from './img/codefest-2.jpg'
+import codefest3 from './img/codefest-3.jpeg'
+import hackX1 from './img/hackX-1.jpg'
+import hackX2 from './img/hackX-2.jpg'
+import hackX3 from './img/hackX-3.jpg'
+import zfitLogo from './img/Zfit-logo.png'
+import resqLogo from './img/resq-logo.png'
+import ceylonLogo from './img/CeylonSC-logo.png'
 import './App.css'
 
 const PROJECTS = [
   {
-    period: '2025 — PRESENT',
-    role: 'ResQ — National Disaster Platform',
-    company: '1st Runners Up · SLIIT Codefest 2025 Revivenation',
-    description:
-      'Full-stack MERN application with React Native mobile app enabling disaster alerts, SOS requests, and real-time resource allocation. Integrated early-access APIs (SLUDI, Commercial Bank PayDPI) and built analytics dashboards with geospatial tracking.',
-    tags: ['Node.js', 'React', 'MongoDB', 'TypeScript', 'REST API'],
-    link: 'https://github.com/disaster-response-sl/national-disaster-platform',
-  },
-  {
     period: 'JUL — OCT 2025',
     role: 'ZFit — Gym Management System',
     company: 'Full-Stack Project',
+    logo: zfitLogo,
     description:
-      'Comprehensive gym management platform with payment processing, invoice generation, and refund handling. Built responsive member dashboards with attendance tracking and integrated PayHere payment gateway for secure subscription management.',
-    tags: ['Next.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'JWT'],
+      'Comprehensive payment management system with modules for payments, invoices, and refunds to streamline financial operations. Built responsive dashboards for members with attendance logs, payments, and personal data. Integrated PayHere for secure subscription management.',
+    tags: ['Next.js', 'React', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'JWT', 'TypeScript'],
     link: 'https://github.com/kbpkavisika/ZFit',
   },
   {
-    period: '2025',
-    role: 'Ceylon Smart Citizen',
-    company: 'Tech-Triathlon by Rootcode',
+    period: 'JUL — AUG 2025',
+    role: 'ResQ — National Disaster Platform',
+    company: '1st Runners Up · SLIIT Codefest 2025 Revivenation',
+    logo: resqLogo,
     description:
-      'Digital governance solution serving 20+ citizen services including document requests, multilingual support, and queue reservations. Built JWT-authenticated microservices with NIC verification and real-time queue management.',
-    tags: ['Node.js', 'PostgreSQL', 'Redis', 'Docker', 'Next.js'],
-    link: 'https://github.com/CeylonSmartCitizen',
+      'Full-stack MERN application and React Native mobile app enabling disaster alerts, SOS requests, and real-time resource allocation. Collaborated with Ministry of Digital Economy and ICTA to integrate government APIs (SLUDI, Commercial Bank PayDPI, mock NDX) for disaster data, payments, and inter-agency coordination.',
+    tags: ['Node.js', 'Express', 'MongoDB', 'React', 'React Native', 'TypeScript', 'Recharts', 'Tailwind CSS', 'JWT'],
+    link: 'https://github.com/disaster-response-sl/national-disaster-platform',
   },
   {
-    period: '2025 — ONGOING',
-    role: 'ZerraLabs — AI Product Photography',
-    company: 'SaaS Startup',
+    period: 'JUL — AUG 2025',
+    role: 'Ceylon Smart Citizen',
+    company: 'Tech-Triathlon by Rootcode',
+    logo: ceylonLogo,
     description:
-      'AI-powered SaaS platform transforming product photos into professional marketing images. Building proprietary AI models for automated background enhancement, lighting correction, and styling.',
-    tags: ['AI/ML', 'SaaS', 'Computer Vision', 'Deep Learning'],
-    link: 'https://zerralabs.com',
+      'Full-stack digital governance platform featuring a secure microservices backend and ML-powered resource optimization pipeline, consolidating 20+ services. Two ML models built: Service Time Prediction (R² ≈ 0.85) and Staffing Forecast with ~1–2 staff variance.',
+    tags: ['Node.js', 'Express', 'PostgreSQL', 'Next.js', 'Docker', 'Python', 'scikit-learn', 'pandas'],
+    link: 'https://github.com/CeylonSmartCitizen',
   },
   {
     period: 'MAR — APR 2025',
     role: 'PlayNova — Online Game Store',
     company: 'Academic Project',
     description:
-      'Java-based e-commerce platform for gaming products. Implemented MVC architecture with Singleton design pattern for secure JDBC connections. Full CRUD announcement management system.',
-    tags: ['Java', 'JSP', 'Servlets', 'MySQL', 'Apache Tomcat'],
+      'Java-based e-commerce platform for gaming products. Implemented announcement management module with full CRUD operations for upcoming game releases. Applied MVC design principles with Singleton pattern for secure JDBC connections.',
+    tags: ['Java', 'JSP', 'Servlets', 'MySQL', 'JDBC', 'Apache Tomcat', 'CSS', 'JavaScript'],
     link: 'https://github.com/gaindunuhansith/playnova',
   },
   {
-    period: '2025',
-    role: 'Datathon — Public Service Optimization',
-    company: 'Machine Learning Project',
+    period: 'SEP — OCT 2024',
+    role: 'Cabin.com — Hotel Reservation Platform',
+    company: 'Academic Project',
     description:
-      'Predictive ML models for public service resource optimization. Service time prediction achieving R² ~0.85 using HistGradientBoostingRegressor and workforce forecasting with RandomForestRegressor.',
-    tags: ['Python', 'scikit-learn', 'pandas', 'NumPy'],
-    link: 'https://github.com/CeylonSmartCitizen',
+      'Secure reservation system with user profiles supporting full CRUD operations for bookings. Designed a mobile-friendly responsive interface for hotel reservation management.',
+    tags: ['HTML', 'CSS', 'PHP', 'MySQL'],
+    link: '#',
+  },
+  {
+    period: '2025 — ONGOING',
+    role: 'ZerraLabs — AI Product Photography',
+    company: 'SaaS Startup',
+    description:
+      'AI-based SaaS tool transforming user-uploaded product photos into high-quality professional images. Contributing to product strategy, feature development, and early user acquisition. Building proprietary AI models for automated background enhancement, lighting correction, and styling.',
+    tags: ['AI/ML', 'SaaS', 'Computer Vision', 'Deep Learning'],
+    link: 'https://zerralabs.com',
   },
 ]
 
 const SKILLS = [
   {
-    label: 'LANGUAGES',
-    title: 'Full-Stack Developer',
-    text: 'Fluent in Java, Python, JavaScript, TypeScript, C, C++, PHP, SQL, and R — writing clean, maintainable code across the entire stack.',
+    title: 'Programming Languages',
+    items: ['Java', 'Python', 'JavaScript', 'TypeScript', 'SQL', 'Bash'],
   },
   {
-    label: 'FRAMEWORKS',
-    title: 'Modern Frameworks',
-    text: 'Building with React.js, Node.js, Express.js, Next.js, React Native, and Tailwind CSS to ship fast, scalable, user-focused products.',
+    title: 'Frameworks & Libraries',
+    items: ['React', 'Node.js', 'Express.js', 'Next.js'],
   },
   {
-    label: 'TOOLS & INFRA',
-    title: 'DevOps Ready',
-    text: 'Proficient with Git, Docker, PostgreSQL, MongoDB, MySQL, Redis, Figma, Postman, and cloud-ready deployment pipelines.',
+    title: 'Databases',
+    items: ['MySQL', 'MongoDB', 'PostgreSQL'],
+  },
+  {
+    title: 'Tools & Platforms',
+    items: ['Git', 'GitHub', 'Docker', 'Postman', 'Apache Tomcat', 'Figma', 'Android Studio'],
   },
 ]
 
-const NAV_ITEMS = ['home', 'about', 'skills', 'work', 'contact']
+const ACHIEVEMENTS = [
+  {
+    number: '01',
+    title: '1st Runners Up — SLIIT Codefest 2025',
+    subtitle: 'Revivenation Competition',
+    photos: [codefest1, codefest2, codefest3],
+  },
+  {
+    number: '02',
+    title: 'Finalists — HackX National Hackathon',
+    subtitle: 'University of Kelaniya & Ministry of Science and Technology',
+    photos: [hackX1, hackX2, hackX3],
+  },
+]
+
+const SKILL_ICONS = {
+  'Java': FaJava,
+  'Python': FaPython,
+  'JavaScript': SiJavascript,
+  'TypeScript': SiTypescript,
+  'SQL': FaDatabase,
+  'Bash': SiGnubash,
+  'React': FaReact,
+  'Node.js': FaNodeJs,
+  'Express.js': SiExpress,
+  'Next.js': SiNextdotjs,
+  'MySQL': SiMysql,
+  'MongoDB': SiMongodb,
+  'PostgreSQL': SiPostgresql,
+  'Git': FaGit,
+  'GitHub': FaGithub,
+  'Docker': FaDocker,
+  'Postman': SiPostman,
+  'Apache Tomcat': SiApachetomcat,
+  'Figma': SiFigma,
+  'Android Studio': SiAndroidstudio,
+}
+
+const NAV_ITEMS = ['home', 'about', 'achievements', 'skills', 'work', 'contact']
 const EMAIL = 'kbpkavisika@gmail.com'
+
+function HeroNameDots() {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const section = canvas.closest('.hero')
+    const ctx = canvas.getContext('2d')
+
+    let dots = []
+    let animId = null
+    const mouse = { x: -9999, y: -9999 }
+
+    const REPEL_R   = 100
+    const REPEL_STR = 5500
+    const SPRING    = 0.055
+    const DAMP      = 0.76
+    const GAP       = 5
+
+    async function build() {
+      await document.fonts.ready
+      const W = section.offsetWidth
+      const H = section.offsetHeight
+      canvas.width  = W
+      canvas.height = H
+
+      const h1    = section.querySelector('.hero-display')
+      const sRect = section.getBoundingClientRect()
+      const hRect = h1.getBoundingClientRect()
+      const ox    = hRect.left - sRect.left
+      const oy    = hRect.top  - sRect.top
+
+      const cs  = window.getComputedStyle(h1)
+      const fsz = parseFloat(cs.fontSize)
+      const lh  = fsz * 0.88
+
+      const off    = document.createElement('canvas')
+      off.width    = W
+      off.height   = H
+      const oCtx   = off.getContext('2d')
+      oCtx.fillStyle  = '#fff'
+      oCtx.font       = `900 ${fsz}px "Big Shoulders Display", sans-serif`
+      oCtx.textBaseline = 'top'
+      oCtx.fillText('K B P',     ox, oy)
+      oCtx.fillText('KAVISIKA',  ox, oy + lh)
+
+      const { data } = oCtx.getImageData(0, 0, W, H)
+      dots = []
+      for (let y = 0; y < H; y += GAP) {
+        for (let x = 0; x < W; x += GAP) {
+          if (data[(y * W + x) * 4 + 3] > 100) {
+            dots.push({ ox: x, oy: y, x, y, vx: 0, vy: 0 })
+          }
+        }
+      }
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (const d of dots) {
+        const dx    = d.x - mouse.x
+        const dy    = d.y - mouse.y
+        const dist2 = dx * dx + dy * dy
+        const dist  = Math.sqrt(dist2)
+
+        if (dist < REPEL_R && dist > 0) {
+          const f = REPEL_STR / (dist2 + 1)
+          d.vx += (dx / dist) * f
+          d.vy += (dy / dist) * f
+        }
+
+        d.vx += (d.ox - d.x) * SPRING
+        d.vy += (d.oy - d.y) * SPRING
+        d.vx *= DAMP
+        d.vy *= DAMP
+        d.x  += d.vx
+        d.y  += d.vy
+
+        const spread = Math.hypot(d.x - d.ox, d.y - d.oy)
+        const alpha  = Math.min(0.95, 0.72 + spread * 0.015)
+        ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`
+        ctx.beginPath()
+        ctx.arc(d.x, d.y, 1.3, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      animId = requestAnimationFrame(tick)
+    }
+
+    function onMove(e) {
+      const r  = canvas.getBoundingClientRect()
+      mouse.x  = e.clientX - r.left
+      mouse.y  = e.clientY - r.top
+    }
+    function onLeave() { mouse.x = -9999; mouse.y = -9999 }
+
+    section.addEventListener('mousemove', onMove)
+    section.addEventListener('mouseleave', onLeave)
+
+    const ro = new ResizeObserver(() => { build() })
+    ro.observe(section)
+
+    build().then(tick)
+
+    return () => {
+      cancelAnimationFrame(animId)
+      section.removeEventListener('mousemove', onMove)
+      section.removeEventListener('mouseleave', onLeave)
+      ro.disconnect()
+    }
+  }, [])
+
+  return <canvas ref={canvasRef} className="hero-dots-canvas" />
+}
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [projectIndex, setProjectIndex] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [lightbox, setLightbox] = useState(null) // { photos: [], index: number }
 
-  // Hero parallax / 3-D tilt on mouse move
-  const heroRef = useRef(null)
-  const rawX = useMotionValue(0)
-  const rawY = useMotionValue(0)
-  const springCfg = { stiffness: 120, damping: 22 }
-  const springX = useSpring(rawX, springCfg)
-  const springY = useSpring(rawY, springCfg)
+  const openLightbox = useCallback((photos, index) => {
+    setLightbox({ photos, index })
+  }, [])
 
-  // Text: gentle counter-parallax
-  const textTranslateX = useTransform(springX, [-0.5, 0.5], [10, -10])
-  const textTranslateY = useTransform(springY, [-0.5, 0.5], [6, -6])
+  const closeLightbox = useCallback(() => setLightbox(null), [])
 
-  const handleHeroMouseMove = useCallback((e) => {
-    const rect = heroRef.current?.getBoundingClientRect()
-    if (!rect) return
-    rawX.set((e.clientX - rect.left) / rect.width - 0.5)
-    rawY.set((e.clientY - rect.top) / rect.height - 0.5)
-  }, [rawX, rawY])
+  const lightboxPrev = useCallback(() => {
+    setLightbox((lb) => lb && { ...lb, index: (lb.index - 1 + lb.photos.length) % lb.photos.length })
+  }, [])
 
-  const handleHeroMouseLeave = useCallback(() => {
-    rawX.set(0)
-    rawY.set(0)
-  }, [rawX, rawY])
+  const lightboxNext = useCallback(() => {
+    setLightbox((lb) => lb && { ...lb, index: (lb.index + 1) % lb.photos.length })
+  }, [])
 
   const copyEmail = useCallback(() => {
     navigator.clipboard.writeText(EMAIL).then(() => {
@@ -199,20 +356,17 @@ function App() {
       <section
         id="home"
         className="hero"
-        ref={heroRef}
-        onMouseMove={handleHeroMouseMove}
-        onMouseLeave={handleHeroMouseLeave}
       >
+        <HeroNameDots />
         <div className="hero-content-row">
           <motion.div
             className="hero-inner"
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{ x: textTranslateX, y: textTranslateY }}
             transition={{ duration: 0.9, ease: 'easeOut' }}
           >
             <p className="hero-label">SOFTWARE ENGINEER · SRI LANKA</p>
-            <h1 className="hero-display">
+            <h1 className="hero-display" style={{ opacity: 0 }}>
               K B P<br />KAVISIKA
             </h1>
             <p className="hero-sub">
@@ -232,6 +386,63 @@ function App() {
         </motion.div>
       </section>
 
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div
+            className="lightbox-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={closeLightbox}
+          >
+            <motion.div
+              className="lightbox-box"
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.88, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={lightbox.index}
+                  src={lightbox.photos[lightbox.index]}
+                  alt={`Photo ${lightbox.index + 1}`}
+                  className="lightbox-img"
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -30 }}
+                  transition={{ duration: 0.22 }}
+                />
+              </AnimatePresence>
+              <button className="lightbox-close" onClick={closeLightbox} aria-label="Close">&#x2715;</button>
+              {lightbox.photos.length > 1 && (
+                <>
+                  <button className="lightbox-nav lightbox-prev" onClick={lightboxPrev} aria-label="Previous">
+                    <BsArrowLeft />
+                  </button>
+                  <button className="lightbox-nav lightbox-next" onClick={lightboxNext} aria-label="Next">
+                    <BsArrowRight />
+                  </button>
+                  <div className="lightbox-dots">
+                    {lightbox.photos.map((_, k) => (
+                      <button
+                        key={k}
+                        className={`lightbox-dot${k === lightbox.index ? ' active' : ''}`}
+                        onClick={() => setLightbox((lb) => ({ ...lb, index: k }))}
+                        aria-label={`Go to photo ${k + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* About */}
       <section id="about" className="about-section">
         <motion.div
@@ -247,16 +458,81 @@ function App() {
           </h2>
           <div className="about-body">
             <p>
-              I build scalable, real-world software solutions with a focus on user-centered design.
-              Through hackathons, academic projects, and startup experience, I have shipped full-stack
-              web apps, REST APIs, mobile apps, and AI-powered tools.
+              I'm a Software Engineering undergraduate at SLIIT building production-grade web
+              applications, mobile apps, and AI-powered tools that solve real problems at scale.
             </p>
             <p>
-              Currently strengthening skills in full-stack development, system design, and
-              AI-powered applications while preparing for industry internships and entry-level roles.
+              From winning 1st Runners Up at SLIIT Codefest 2025 with ResQ — a national disaster
+              response platform integrated with government APIs — to reaching the finals of the HackX
+              national hackathon, I turn ideas into real, deployed software fast.
+            </p>
+            <p>
+              I've shipped full-stack systems across React, Node.js, MongoDB, Next.js, and TypeScript,
+              built ML pipelines achieving R&#178; ≈ 0.85, and currently contribute as a founding
+              developer at ZerraLabs — an AI-powered SaaS startup.
             </p>
           </div>
         </motion.div>
+      </section>
+
+      {/* Achievements */}
+      <section id="achievements" className="achievements-section">
+        <div className="section-inner">
+          <motion.p
+            className="section-label"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            ACHIEVEMENTS
+          </motion.p>
+          <motion.h2
+            className="section-heading"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            Awards &amp; Recognition
+          </motion.h2>
+          <div className="achievements-list">
+            {ACHIEVEMENTS.map((a, i) => (
+              <motion.div
+                key={a.title}
+                className="achievement-item"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.15 }}
+              >
+                <div className="achievement-info">
+                  <span className="achievement-number">{a.number}</span>
+                  <h3 className="achievement-title">{a.title}</h3>
+                  <p className="achievement-subtitle">{a.subtitle}</p>
+                </div>
+                <div className="achievement-photos">
+                  {a.photos.map((photo, j) => (
+                    <motion.div
+                      key={j}
+                      className="achievement-photo-slot"
+                      whileHover={{ scale: 1.04 }}
+                      transition={{ duration: 0.22 }}
+                      onClick={() => photo && openLightbox(a.photos, j)}
+                      style={{ cursor: photo ? 'pointer' : 'default' }}
+                    >
+                      {photo ? (
+                        <img src={photo} alt={`${a.title} photo ${j + 1}`} />
+                      ) : (
+                        <span className="photo-placeholder-label">ADD PHOTO</span>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Skills */}
@@ -292,7 +568,17 @@ function App() {
               >
                 <span className="card-label">{s.label}</span>
                 <h3>{s.title}</h3>
-                <p>{s.text}</p>
+                <div className="skill-items">
+                  {s.items.map((item) => {
+                    const Icon = SKILL_ICONS[item]
+                    return (
+                      <span key={item} className="skill-item">
+                        {Icon && <Icon className="skill-icon" />}
+                        {item}
+                      </span>
+                    )
+                  })}
+                </div>
               </motion.div>
             ))}
           </div>
@@ -321,6 +607,7 @@ function App() {
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.35, ease: 'easeInOut' }}
               >
+                <div className="slide-text-col">
                 <p className="slide-period">{PROJECTS[projectIndex].period}</p>
                 <h2 className="slide-title">{PROJECTS[projectIndex].role}</h2>
                 <p className="slide-company">{PROJECTS[projectIndex].company}</p>
@@ -338,6 +625,20 @@ function App() {
                 >
                   View Project <BsArrowRight />
                 </a>
+                </div>
+                {'logo' in PROJECTS[projectIndex] && (
+                  <div className="slide-logo-col">
+                    <div className="slide-logo">
+                      {PROJECTS[projectIndex].logo ? (
+                        <img src={PROJECTS[projectIndex].logo} alt={`${PROJECTS[projectIndex].role} logo`} />
+                      ) : (
+                        <span className="slide-logo-text">
+                          {PROJECTS[projectIndex].role.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
 
