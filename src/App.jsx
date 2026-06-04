@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FaGithub, FaLinkedin, FaJava, FaPython, FaReact, FaNodeJs, FaGit, FaDocker, FaDatabase, FaTerminal } from 'react-icons/fa'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs'
 import { SiJavascript, SiTypescript, SiExpress, SiNextdotjs, SiMysql, SiMongodb, SiPostgresql, SiPostman, SiApachetomcat, SiFigma, SiAndroidstudio, SiGnubash } from 'react-icons/si'
+import { FiSun, FiMoon, FiDownload } from 'react-icons/fi'
 import codefest1 from './img/codefest-1.jpg'
 import codefest2 from './img/codefest-2.jpg'
 import codefest3 from './img/codefest-3.jpeg'
@@ -134,8 +135,13 @@ const SKILL_ICONS = {
 const NAV_ITEMS = ['home', 'about', 'achievements', 'skills', 'work', 'contact']
 const EMAIL = 'kbpkavisika@gmail.com'
 
-function HeroNameDots() {
+function HeroNameDots({ darkMode }) {
   const canvasRef = useRef(null)
+  const darkModeRef = useRef(darkMode)
+
+  useEffect(() => {
+    darkModeRef.current = darkMode
+  }, [darkMode])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -145,13 +151,21 @@ function HeroNameDots() {
 
     let dots = []
     let animId = null
+    let demoAnimId = null
+    let demoTimeout = null
     const mouse = { x: -9999, y: -9999 }
+
+    // Positions of the two name lines — set during build(), used by demo sweep
+    let nameY1 = 0, nameY2 = 0, nameWidth = 0
 
     const REPEL_R   = 100
     const REPEL_STR = 5500
     const SPRING    = 0.055
     const DAMP      = 0.76
     const GAP       = 5
+
+    // True when the device has no fine pointer (phones/tablets)
+    const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches
 
     async function build() {
       await document.fonts.ready
@@ -169,6 +183,11 @@ function HeroNameDots() {
       const cs  = window.getComputedStyle(h1)
       const fsz = parseFloat(cs.fontSize)
       const lh  = fsz * 0.88
+
+      // Store midpoints of each text line for the demo sweep
+      nameY1    = oy + fsz * 0.45
+      nameY2    = oy + lh + fsz * 0.45
+      nameWidth = Math.min(W * 0.85, hRect.width)
 
       const off    = document.createElement('canvas')
       off.width    = W
@@ -214,7 +233,8 @@ function HeroNameDots() {
 
         const spread = Math.hypot(d.x - d.ox, d.y - d.oy)
         const alpha  = Math.min(0.95, 0.72 + spread * 0.015)
-        ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`
+        const ch = darkModeRef.current ? '255,255,255' : '0,0,0'
+        ctx.fillStyle = `rgba(${ch},${alpha.toFixed(2)})`
         ctx.beginPath()
         ctx.arc(d.x, d.y, 1.3, 0, Math.PI * 2)
         ctx.fill()
@@ -222,6 +242,7 @@ function HeroNameDots() {
       animId = requestAnimationFrame(tick)
     }
 
+    // --- Desktop: mouse events ---
     function onMove(e) {
       const r  = canvas.getBoundingClientRect()
       mouse.x  = e.clientX - r.left
@@ -229,18 +250,80 @@ function HeroNameDots() {
     }
     function onLeave() { mouse.x = -9999; mouse.y = -9999 }
 
+    // --- Mobile: touch events (finger drag = cursor) ---
+    function onTouchMove(e) {
+      e.preventDefault()
+      const touch = e.touches[0]
+      const r = canvas.getBoundingClientRect()
+      mouse.x = touch.clientX - r.left
+      mouse.y = touch.clientY - r.top
+    }
+    function onTouchEnd() { mouse.x = -9999; mouse.y = -9999 }
+
+    // --- Mobile: auto-demo sweep (runs once on load to reveal the effect) ---
+    function runDemoSweep() {
+      const W = canvas.width
+      const startX = W * 0.03
+      const TOTAL  = 2600 // ms for full sweep
+      const startT = performance.now()
+
+      function ease(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
+
+      function demoFrame(now) {
+        const t = Math.min((now - startT) / TOTAL, 1)
+
+        if (t < 0.48) {
+          // Sweep right across "K B P" (line 1)
+          const p = t / 0.48
+          mouse.x = startX + nameWidth * ease(p)
+          mouse.y = nameY1
+        } else if (t < 0.52) {
+          // Short pause between lines — move to line 2 start
+          mouse.x = -9999
+          mouse.y = -9999
+        } else {
+          // Sweep right across "KAVISIKA" (line 2)
+          const p = (t - 0.52) / 0.48
+          mouse.x = startX + nameWidth * ease(p)
+          mouse.y = nameY2
+        }
+
+        if (t < 1) {
+          demoAnimId = requestAnimationFrame(demoFrame)
+        } else {
+          mouse.x = -9999
+          mouse.y = -9999
+        }
+      }
+      demoAnimId = requestAnimationFrame(demoFrame)
+    }
+
     section.addEventListener('mousemove', onMove)
     section.addEventListener('mouseleave', onLeave)
+    section.addEventListener('touchmove', onTouchMove, { passive: false })
+    section.addEventListener('touchend',  onTouchEnd)
+    section.addEventListener('touchcancel', onTouchEnd)
 
     const ro = new ResizeObserver(() => { build() })
     ro.observe(section)
 
-    build().then(tick)
+    build().then(() => {
+      tick()
+      // On touch-only devices, play the demo sweep after a short delay
+      if (isTouchOnly) {
+        demoTimeout = setTimeout(runDemoSweep, 900)
+      }
+    })
 
     return () => {
       cancelAnimationFrame(animId)
+      cancelAnimationFrame(demoAnimId)
+      clearTimeout(demoTimeout)
       section.removeEventListener('mousemove', onMove)
       section.removeEventListener('mouseleave', onLeave)
+      section.removeEventListener('touchmove', onTouchMove)
+      section.removeEventListener('touchend',  onTouchEnd)
+      section.removeEventListener('touchcancel', onTouchEnd)
       ro.disconnect()
     }
   }, [])
@@ -250,6 +333,7 @@ function HeroNameDots() {
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
   const [projectIndex, setProjectIndex] = useState(0)
   const [copied, setCopied] = useState(false)
   const [lightbox, setLightbox] = useState(null) // { photos: [], index: number }
@@ -288,7 +372,7 @@ function App() {
   }
 
   return (
-    <div className="portfolio">
+    <div className="portfolio" data-mode={darkMode ? 'dark' : 'light'}>
       {/* Navigation */}
       <nav className="navbar">
         <button className="menu-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">
@@ -314,6 +398,21 @@ function App() {
           >
             <FaLinkedin />
           </a>
+          <a
+            href={import.meta.env.BASE_URL + 'resume.pdf'}
+            download
+            className="nav-icon-link resume-download-btn"
+            aria-label="Download Resume"
+          >
+            <FiDownload />
+          </a>
+          <button
+            className="theme-toggle-btn"
+            onClick={() => setDarkMode((m) => !m)}
+            aria-label="Toggle dark/light mode"
+          >
+            {darkMode ? <FiSun /> : <FiMoon />}
+          </button>
         </div>
       </nav>
 
@@ -357,7 +456,7 @@ function App() {
         id="home"
         className="hero"
       >
-        <HeroNameDots />
+        <HeroNameDots darkMode={darkMode} />
         <div className="hero-content-row">
           <motion.div
             className="hero-inner"
@@ -374,6 +473,8 @@ function App() {
               SLIIT · Full-Stack · Open Source
             </p>
           </motion.div>
+
+
         </div>
         <motion.div
           className="hero-scroll"
@@ -384,6 +485,15 @@ function App() {
           <span>SCROLL</span>
           <div className="scroll-line" />
         </motion.div>
+        {/* Touch-only hint — hidden on desktop via CSS */}
+        <motion.p
+          className="hero-touch-hint"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        >
+          DRAG TO INTERACT
+        </motion.p>
       </section>
 
       {/* Lightbox */}
