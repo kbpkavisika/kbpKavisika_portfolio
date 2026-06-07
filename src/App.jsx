@@ -252,7 +252,6 @@ function HeroNameDots({ darkMode }) {
 
     // --- Mobile: touch events (finger drag = cursor) ---
     function onTouchMove(e) {
-      e.preventDefault()
       const touch = e.touches[0]
       const r = canvas.getBoundingClientRect()
       mouse.x = touch.clientX - r.left
@@ -300,7 +299,7 @@ function HeroNameDots({ darkMode }) {
 
     section.addEventListener('mousemove', onMove)
     section.addEventListener('mouseleave', onLeave)
-    section.addEventListener('touchmove', onTouchMove, { passive: false })
+    section.addEventListener('touchmove', onTouchMove, { passive: true })
     section.addEventListener('touchend',  onTouchEnd)
     section.addEventListener('touchcancel', onTouchEnd)
 
@@ -482,7 +481,7 @@ function App() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.6 }}
         >
-          <span>SCROLL</span>
+          <span></span>
           <div className="scroll-line" />
         </motion.div>
         {/* Touch-only hint — hidden on desktop via CSS */}
