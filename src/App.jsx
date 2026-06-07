@@ -398,8 +398,8 @@ function App() {
             <FaLinkedin />
           </a>
           <a
-            href={import.meta.env.BASE_URL + 'resume.pdf'}
-            download
+            href={`${import.meta.env.BASE_URL}PavithKavisika_resume.pdf`}
+            download="PavithKavisika_resume.pdf"
             className="nav-icon-link resume-download-btn"
             aria-label="Download Resume"
           >
@@ -567,18 +567,18 @@ function App() {
           </h2>
           <div className="about-body">
             <p>
-              I'm a Software Engineering undergraduate at SLIIT building production-grade web
-              applications, mobile apps, and AI-powered tools that solve real problems at scale.
+              I’m a Software Engineering undergraduate at SLIIT, passionate about building scalable 
+              full stack applications and AI powered systems. I work with modern technologies like React, 
+              Node.js, TypeScript, and Python, and enjoy turning real world problems into practical digital
+              solutions.
             </p>
             <p>
-              From winning 1st Runners Up at SLIIT Codefest 2025 with ResQ — a national disaster
-              response platform integrated with government APIs — to reaching the finals of the HackX
-              national hackathon, I turn ideas into real, deployed software fast.
+              I’ve competed in national hackathons, earning 1st Runner Up at SLIIT Codefest 2025, and 
+              built multiple production style projects including a gym management system, a national
+               disaster response platform, and an AI driven SaaS product.
             </p>
             <p>
-              I've shipped full-stack systems across React, Node.js, MongoDB, Next.js, and TypeScript,
-              built ML pipelines achieving R&#178; ≈ 0.85, and currently contribute as a founding
-              developer at ZerraLabs — an AI-powered SaaS startup.
+              I’m focused on growing as a software engineer and creating impactful, user centered technology.
             </p>
           </div>
         </motion.div>
