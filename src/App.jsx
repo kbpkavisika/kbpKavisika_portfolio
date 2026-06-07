@@ -308,10 +308,8 @@ function HeroNameDots({ darkMode }) {
 
     build().then(() => {
       tick()
-      // On touch-only devices, play the demo sweep after a short delay
-      if (isTouchOnly) {
-        demoTimeout = setTimeout(runDemoSweep, 900)
-      }
+      // Play the demo sweep on all devices after a short delay
+      demoTimeout = setTimeout(runDemoSweep, 900)
     })
 
     return () => {
