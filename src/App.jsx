@@ -1,8 +1,8 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FaGithub, FaLinkedin, FaJava, FaPython, FaReact, FaNodeJs, FaGit, FaDocker, FaDatabase, FaTerminal } from 'react-icons/fa'
+import { FaGithub, FaLinkedin, FaJava, FaPython, FaReact, FaNodeJs, FaGit, FaDocker, FaDatabase } from 'react-icons/fa'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs'
-import { SiJavascript, SiTypescript, SiExpress, SiNextdotjs, SiMysql, SiMongodb, SiPostgresql, SiPostman, SiApachetomcat, SiFigma, SiAndroidstudio, SiGnubash } from 'react-icons/si'
+import { SiJavascript, SiTypescript, SiExpress, SiNextdotjs, SiMysql, SiMongodb, SiPostgresql, SiPostman, SiApachetomcat, SiFigma, SiAndroidstudio, SiGnubash, SiSpringboot, SiTailwindcss, SiSqlite, SiKubernetes, SiElectron, SiExpo } from 'react-icons/si'
 import { FiSun, FiMoon, FiDownload } from 'react-icons/fi'
 import codefest1 from './img/codefest-1.jpg'
 import codefest2 from './img/codefest-2.jpg'
@@ -22,8 +22,8 @@ const PROJECTS = [
     company: 'Full-Stack Project',
     logo: zfitLogo,
     description:
-      'Comprehensive payment management system with modules for payments, invoices, and refunds to streamline financial operations. Built responsive dashboards for members with attendance logs, payments, and personal data. Integrated PayHere for secure subscription management.',
-    tags: ['Next.js', 'React', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'JWT', 'TypeScript'],
+      'Architected a full-stack gym management platform with dedicated modules for payments, invoicing, and refunds, streamlining end-to-end financial operations. Built responsive, role-based member dashboards displaying attendance logs, payment history, and personal profile data. Integrated the PayHere payment gateway with JWT-secured REST APIs to enable secure, automated subscription billing and renewals.',
+    tags: ['Next.js', 'React', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'JWT', 'PayHere', 'REST API', 'TypeScript'],
     link: 'https://github.com/kbpkavisika/ZFit',
   },
   {
@@ -32,9 +32,18 @@ const PROJECTS = [
     company: '1st Runners Up · SLIIT Codefest 2025 Revivenation',
     logo: resqLogo,
     description:
-      'Full-stack MERN application and React Native mobile app enabling disaster alerts, SOS requests, and real-time resource allocation. Collaborated with Ministry of Digital Economy and ICTA to integrate government APIs (SLUDI, Commercial Bank PayDPI, mock NDX) for disaster data, payments, and inter-agency coordination.',
-    tags: ['Node.js', 'Express', 'MongoDB', 'React', 'React Native', 'TypeScript', 'Recharts', 'Tailwind CSS', 'JWT'],
+      'Designed and developed a full-stack MERN web application and companion React Native mobile app for real-time disaster tracking, alerts, SOS signals, responder assignment, and resource coordination. A lightweight prototype was tested during cyclone emergency-response simulations. Collaborated with the Ministry of Digital Economy and ICTA to integrate government APIs (SLUDI, Commercial Bank PayDPI, mock NDX) for disaster data, payments, and inter-agency coordination.',
+    tags: ['Node.js', 'Express', 'MongoDB', 'Mongoose', 'React', 'React Native', 'TypeScript', 'Recharts', 'Tailwind CSS', 'JWT'],
     link: 'https://github.com/disaster-response-sl/national-disaster-platform',
+  },
+  {
+    period: 'FEB — APR 2026',
+    role: 'eDoc — Smart Healthcare Platform',
+    company: 'Microservices Architecture',
+    description:
+      'Cloud-native telemedicine platform for patient management and healthcare services. Designed and implemented the Patient Management Service handling profile management and medical report storage, alongside a Notification Service delivering real-time email and SMS alerts. Built RESTful APIs with Spring Boot following microservices architecture principles.',
+    tags: ['Spring Boot', 'Java', 'Docker', 'Kubernetes', 'REST API', 'Microservices'],
+    link: 'https://github.com/kbpkavisika/eDoc',
   },
   {
     period: 'JUL — AUG 2025',
@@ -42,16 +51,25 @@ const PROJECTS = [
     company: 'Tech-Triathlon by Rootcode',
     logo: ceylonLogo,
     description:
-      'Full-stack digital governance platform featuring a secure microservices backend and ML-powered resource optimization pipeline, consolidating 20+ services. Two ML models built: Service Time Prediction (R² ≈ 0.85) and Staffing Forecast with ~1–2 staff variance.',
-    tags: ['Node.js', 'Express', 'PostgreSQL', 'Next.js', 'Docker', 'Python', 'scikit-learn', 'pandas'],
+      'Engineered a full-stack digital governance platform featuring a secure microservices backend and an ML-powered resource optimization pipeline, consolidating 20+ services. Developed two machine learning models: Service Time Prediction (HistGradientBoostingRegressor, R² ≈ 0.85) and Staffing Forecast (RandomForestRegressor) with ~1–2 staff variance.',
+    tags: ['Node.js', 'Express', 'PostgreSQL', 'Next.js', 'Docker', 'Python', 'scikit-learn', 'pandas', 'NumPy', 'joblib'],
     link: 'https://github.com/CeylonSmartCitizen',
+  },
+  {
+    period: 'APR 2026',
+    role: 'StockUp — Cross-Platform Inventory System',
+    company: 'Desktop & Mobile Application',
+    description:
+      'Architected a cross-platform inventory management system with dedicated desktop (Electron) and mobile (React Native / Expo) clients sharing a common offline-first data layer. Built an embedded SQLite data layer (better-sqlite3 / expo-sqlite) enabling full inventory tracking, search, and validation without any dependency on a remote backend. Designed responsive, platform-specific UIs with Tailwind CSS, optimizing layouts and interactions separately for desktop and mobile form factors.',
+    tags: ['React', 'TypeScript', 'Electron', 'React Native', 'Expo', 'SQLite', 'Tailwind CSS', 'Vite'],
+    link: 'https://github.com/kbpkavisika/StockUp',
   },
   {
     period: 'MAR — APR 2025',
     role: 'PlayNova — Online Game Store',
     company: 'Academic Project',
     description:
-      'Java-based e-commerce platform for gaming products. Implemented announcement management module with full CRUD operations for upcoming game releases. Applied MVC design principles with Singleton pattern for secure JDBC connections.',
+      'Java-based e-commerce platform for gaming products. Implemented an announcement management module with full CRUD operations to publish and update upcoming game releases. Applied MVC design principles with the Singleton pattern for secure JDBC connections, delivering a scalable architecture for reliable and maintainable growth.',
     tags: ['Java', 'JSP', 'Servlets', 'MySQL', 'JDBC', 'Apache Tomcat', 'CSS', 'JavaScript'],
     link: 'https://github.com/gaindunuhansith/playnova',
   },
@@ -82,15 +100,15 @@ const SKILLS = [
   },
   {
     title: 'Frameworks & Libraries',
-    items: ['React', 'Node.js', 'Express.js', 'Next.js'],
+    items: ['Spring Boot', 'React', 'React Native', 'Next.js', 'Node.js', 'Express.js', 'JSP', 'Servlets', 'Tailwind CSS'],
   },
   {
     title: 'Databases',
-    items: ['MySQL', 'MongoDB', 'PostgreSQL'],
+    items: ['MySQL', 'PostgreSQL', 'MongoDB', 'SQLite'],
   },
   {
     title: 'Tools & Platforms',
-    items: ['Git', 'GitHub', 'Docker', 'Postman', 'Apache Tomcat', 'Figma', 'Android Studio'],
+    items: ['Git', 'GitHub', 'Docker', 'Kubernetes', 'Postman', 'Apache Tomcat', 'Electron', 'Expo', 'Android Studio', 'Figma'],
   },
 ]
 
@@ -116,24 +134,48 @@ const SKILL_ICONS = {
   'TypeScript': SiTypescript,
   'SQL': FaDatabase,
   'Bash': SiGnubash,
+  'Spring Boot': SiSpringboot,
   'React': FaReact,
+  'React Native': FaReact,
+  'Next.js': SiNextdotjs,
   'Node.js': FaNodeJs,
   'Express.js': SiExpress,
-  'Next.js': SiNextdotjs,
+  'JSP': FaJava,
+  'Servlets': FaJava,
+  'Tailwind CSS': SiTailwindcss,
   'MySQL': SiMysql,
   'MongoDB': SiMongodb,
   'PostgreSQL': SiPostgresql,
+  'SQLite': SiSqlite,
   'Git': FaGit,
   'GitHub': FaGithub,
   'Docker': FaDocker,
+  'Kubernetes': SiKubernetes,
   'Postman': SiPostman,
   'Apache Tomcat': SiApachetomcat,
+  'Electron': SiElectron,
+  'Expo': SiExpo,
   'Figma': SiFigma,
   'Android Studio': SiAndroidstudio,
 }
 
 const NAV_ITEMS = ['home', 'about', 'achievements', 'skills', 'work', 'contact']
 const EMAIL = 'kbpkavisika@gmail.com'
+
+// Drives the desktop-grid / mobile-slider split, so only one of the two
+// ever mounts rather than rendering both and hiding one with CSS.
+function useMediaQuery(query) {
+  const subscribe = useCallback((onChange) => {
+    const mq = window.matchMedia(query)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [query])
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false
+  )
+}
 
 function HeroNameDots({ darkMode }) {
   const canvasRef = useRef(null)
@@ -164,8 +206,18 @@ function HeroNameDots({ darkMode }) {
     const DAMP      = 0.76
     const GAP       = 5
 
-    // True when the device has no fine pointer (phones/tablets)
-    const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+    // Layout position relative to the section, accumulated through the
+    // offsetParent chain. Unlike getBoundingClientRect() this ignores CSS
+    // transforms, so the dots land correctly even when build() runs while
+    // the hero's entrance animation is still sliding the text into place.
+    function offsetWithin(el, ancestor) {
+      let x = 0, y = 0
+      for (let node = el; node && node !== ancestor; node = node.offsetParent) {
+        x += node.offsetLeft
+        y += node.offsetTop
+      }
+      return { x, y }
+    }
 
     async function build() {
       await document.fonts.ready
@@ -174,11 +226,8 @@ function HeroNameDots({ darkMode }) {
       canvas.width  = W
       canvas.height = H
 
-      const h1    = section.querySelector('.hero-display')
-      const sRect = section.getBoundingClientRect()
-      const hRect = h1.getBoundingClientRect()
-      const ox    = hRect.left - sRect.left
-      const oy    = hRect.top  - sRect.top
+      const h1 = section.querySelector('.hero-display')
+      const { x: ox, y: oy } = offsetWithin(h1, section)
 
       const cs  = window.getComputedStyle(h1)
       const fsz = parseFloat(cs.fontSize)
@@ -187,7 +236,7 @@ function HeroNameDots({ darkMode }) {
       // Store midpoints of each text line for the demo sweep
       nameY1    = oy + fsz * 0.45
       nameY2    = oy + lh + fsz * 0.45
-      nameWidth = Math.min(W * 0.85, hRect.width)
+      nameWidth = Math.min(W * 0.85, h1.offsetWidth)
 
       const off    = document.createElement('canvas')
       off.width    = W
@@ -195,9 +244,18 @@ function HeroNameDots({ darkMode }) {
       const oCtx   = off.getContext('2d')
       oCtx.fillStyle  = '#fff'
       oCtx.font       = `900 ${fsz}px "Big Shoulders Display", sans-serif`
-      oCtx.textBaseline = 'top'
-      oCtx.fillText('K B P',     ox, oy)
-      oCtx.fillText('KAVISIKA',  ox, oy + lh)
+
+      // line-height is below 1, so the glyphs overflow their line boxes.
+      // Drawing from the baseline (rather than the em-box top) puts the dots
+      // where the browser would paint the real text, instead of ~20px lower.
+      const m   = oCtx.measureText('K')
+      const asc = m.fontBoundingBoxAscent  ?? fsz * 0.8
+      const dsc = m.fontBoundingBoxDescent ?? fsz * 0.2
+      const baseline = oy + (lh - (asc + dsc)) / 2 + asc
+
+      oCtx.textBaseline = 'alphabetic'
+      oCtx.fillText('K B P',     ox, baseline)
+      oCtx.fillText('KAVISIKA',  ox, baseline + lh)
 
       const { data } = oCtx.getImageData(0, 0, W, H)
       dots = []
@@ -303,10 +361,36 @@ function HeroNameDots({ darkMode }) {
     section.addEventListener('touchend',  onTouchEnd)
     section.addEventListener('touchcancel', onTouchEnd)
 
-    const ro = new ResizeObserver(() => { build() })
+    // Rebuilding the dot field means re-rasterising the text and walking
+    // every pixel, so it is debounced and skipped when nothing actually
+    // changed -- otherwise a resize drag (or a mobile URL bar) rebuilds on
+    // every frame and the page visibly stutters.
+    let lastW = 0, lastH = 0, resizeTimer = null
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        const w = section.offsetWidth, h = section.offsetHeight
+        if (w === lastW && h === lastH) return
+        lastW = w; lastH = h
+        build()
+      }, 150)
+    })
     ro.observe(section)
 
+    // No reason to keep burning frames once the hero is scrolled past.
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (animId === null) animId = requestAnimationFrame(tick)
+      } else if (animId !== null) {
+        cancelAnimationFrame(animId)
+        animId = null
+      }
+    }, { threshold: 0 })
+    io.observe(section)
+
     build().then(() => {
+      lastW = section.offsetWidth
+      lastH = section.offsetHeight
       tick()
       // Play the demo sweep on all devices after a short delay
       demoTimeout = setTimeout(runDemoSweep, 900)
@@ -316,6 +400,8 @@ function HeroNameDots({ darkMode }) {
       cancelAnimationFrame(animId)
       cancelAnimationFrame(demoAnimId)
       clearTimeout(demoTimeout)
+      clearTimeout(resizeTimer)
+      io.disconnect()
       section.removeEventListener('mousemove', onMove)
       section.removeEventListener('mouseleave', onLeave)
       section.removeEventListener('touchmove', onTouchMove)
@@ -334,6 +420,15 @@ function App() {
   const [projectIndex, setProjectIndex] = useState(0)
   const [copied, setCopied] = useState(false)
   const [lightbox, setLightbox] = useState(null) // { photos: [], index: number }
+  const isDesktop = useMediaQuery('(min-width: 900px)')
+
+  // Without this the page behind a full-screen overlay still scrolls under
+  // the finger on mobile, and the menu/lightbox drifts out of view.
+  useEffect(() => {
+    const locked = menuOpen || lightbox !== null
+    document.body.classList.toggle('no-scroll', locked)
+    return () => document.body.classList.remove('no-scroll')
+  }, [menuOpen, lightbox])
 
   const openLightbox = useCallback((photos, index) => {
     setLightbox({ photos, index })
@@ -348,6 +443,23 @@ function App() {
   const lightboxNext = useCallback(() => {
     setLightbox((lb) => lb && { ...lb, index: (lb.index + 1) % lb.photos.length })
   }, [])
+
+  // Escape closes whichever overlay is open; arrows page through the photos.
+  useEffect(() => {
+    if (!lightbox && !menuOpen) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false)
+        closeLightbox()
+        return
+      }
+      if (!lightbox) return
+      if (e.key === 'ArrowLeft') lightboxPrev()
+      else if (e.key === 'ArrowRight') lightboxNext()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox, menuOpen, closeLightbox, lightboxPrev, lightboxNext])
 
   const copyEmail = useCallback(() => {
     navigator.clipboard.writeText(EMAIL).then(() => {
@@ -629,7 +741,12 @@ function App() {
                       style={{ cursor: photo ? 'pointer' : 'default' }}
                     >
                       {photo ? (
-                        <img src={photo} alt={`${a.title} photo ${j + 1}`} />
+                        <img
+                          src={photo}
+                          alt={`${a.title} photo ${j + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         <span className="photo-placeholder-label">ADD PHOTO</span>
                       )}
@@ -666,14 +783,14 @@ function App() {
           <div className="skills-grid">
             {SKILLS.map((s, i) => (
               <motion.div
-                key={s.label}
+                key={s.title}
                 className="skill-card"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.12 }}
               >
-                <span className="card-label">{s.label}</span>
+                <span className="card-label">{String(i + 1).padStart(2, '0')}</span>
                 <h3>{s.title}</h3>
                 <div className="skill-items">
                   {s.items.map((item) => {
@@ -704,63 +821,120 @@ function App() {
           >
             PROJECTS
           </motion.p>
-          <div className="slider-layout">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={projectIndex}
-                className="slide-content"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <div className="slide-text-col">
-                <p className="slide-period">{PROJECTS[projectIndex].period}</p>
-                <h2 className="slide-title">{PROJECTS[projectIndex].role}</h2>
-                <p className="slide-company">{PROJECTS[projectIndex].company}</p>
-                <p className="slide-desc">{PROJECTS[projectIndex].description}</p>
-                <div className="slide-tags">
-                  {PROJECTS[projectIndex].tags.map((t) => (
-                    <span key={t} className="slide-tag">{t}</span>
-                  ))}
-                </div>
-                <a
-                  href={PROJECTS[projectIndex].link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="slide-link"
+          {isDesktop ? (
+            /* Desktop: every project visible at once, no clicking through. */
+            <div className="projects-grid">
+              {PROJECTS.map((p, i) => (
+                <motion.article
+                  key={p.role}
+                  className="project-card"
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.45, delay: (i % 2) * 0.08 }}
                 >
-                  View Project <BsArrowRight />
-                </a>
-                </div>
-                {'logo' in PROJECTS[projectIndex] && (
-                  <div className="slide-logo-col">
-                    <div className="slide-logo">
-                      {PROJECTS[projectIndex].logo ? (
-                        <img src={PROJECTS[projectIndex].logo} alt={`${PROJECTS[projectIndex].role} logo`} />
-                      ) : (
-                        <span className="slide-logo-text">
-                          {PROJECTS[projectIndex].role.charAt(0)}
-                        </span>
-                      )}
-                    </div>
+                  <div className="project-card-head">
+                    <p className="slide-period">{p.period}</p>
+                    {p.logo && (
+                      <div className="project-card-logo">
+                        <img src={p.logo} alt="" loading="lazy" decoding="async" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="slider-controls">
-              <button className="slider-btn" onClick={prevProject} aria-label="Previous project">
-                <BsArrowLeft />
-              </button>
-              <span className="slider-indicator">
-                {String(projectIndex + 1).padStart(2, '0')} / {String(PROJECTS.length).padStart(2, '0')}
-              </span>
-              <button className="slider-btn" onClick={nextProject} aria-label="Next project">
-                <BsArrowRight />
-              </button>
+                  <h3 className="project-card-title">{p.role}</h3>
+                  <p className="slide-company">{p.company}</p>
+                  <p className="project-card-desc">{p.description}</p>
+                  <div className="slide-tags">
+                    {p.tags.map((t) => (
+                      <span key={t} className="slide-tag">{t}</span>
+                    ))}
+                  </div>
+                  {p.link !== '#' && (
+                    <a
+                      href={p.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="slide-link"
+                    >
+                      View Project <BsArrowRight />
+                    </a>
+                  )}
+                </motion.article>
+              ))}
             </div>
-          </div>
+          ) : (
+            /* Mobile: one at a time, advanced by swipe or by the arrows. */
+            <div className="slider-layout">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={projectIndex}
+                  className="slide-content"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.18}
+                  dragDirectionLock
+                  onDragEnd={(e, info) => {
+                    // Either a decisive distance or a quick flick counts.
+                    if (Math.abs(info.offset.x) < 70 && Math.abs(info.velocity.x) < 450) return
+                    if (info.offset.x < 0) nextProject()
+                    else prevProject()
+                  }}
+                >
+                  <div className="slide-text-col">
+                    <p className="slide-period">{PROJECTS[projectIndex].period}</p>
+                    <h2 className="slide-title">{PROJECTS[projectIndex].role}</h2>
+                    <p className="slide-company">{PROJECTS[projectIndex].company}</p>
+                    <p className="slide-desc">{PROJECTS[projectIndex].description}</p>
+                    <div className="slide-tags">
+                      {PROJECTS[projectIndex].tags.map((t) => (
+                        <span key={t} className="slide-tag">{t}</span>
+                      ))}
+                    </div>
+                    {PROJECTS[projectIndex].link !== '#' && (
+                      <a
+                        href={PROJECTS[projectIndex].link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="slide-link"
+                      >
+                        View Project <BsArrowRight />
+                      </a>
+                    )}
+                  </div>
+                  {'logo' in PROJECTS[projectIndex] && (
+                    <div className="slide-logo-col">
+                      <div className="slide-logo">
+                        {PROJECTS[projectIndex].logo ? (
+                          <img src={PROJECTS[projectIndex].logo} alt={`${PROJECTS[projectIndex].role} logo`} />
+                        ) : (
+                          <span className="slide-logo-text">
+                            {PROJECTS[projectIndex].role.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="slider-controls">
+                <button className="slider-btn" onClick={prevProject} aria-label="Previous project">
+                  <BsArrowLeft />
+                </button>
+                <span className="slider-indicator">
+                  {String(projectIndex + 1).padStart(2, '0')} / {String(PROJECTS.length).padStart(2, '0')}
+                </span>
+                <button className="slider-btn" onClick={nextProject} aria-label="Next project">
+                  <BsArrowRight />
+                </button>
+                <span className="slider-hint">SWIPE</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
