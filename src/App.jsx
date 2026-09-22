@@ -159,6 +159,10 @@ const SKILL_ICONS = {
   'Android Studio': SiAndroidstudio,
 }
 
+// Flattened once at module scope -- the marquee renders this list twice per
+// frame-loop and there is no reason to rebuild it on every render.
+const MARQUEE_SKILLS = SKILLS.flatMap((s) => s.items)
+
 const NAV_ITEMS = ['home', 'about', 'achievements', 'skills', 'work', 'contact']
 const EMAIL = 'kbpkavisika@gmail.com'
 
@@ -174,6 +178,148 @@ function useMediaQuery(query) {
     subscribe,
     () => window.matchMedia(query).matches,
     () => false
+  )
+}
+
+// Shared easing. A long, flat tail reads as "settling into place" rather than
+// the uniform easeOut every section used to share.
+const EASE_OUT = [0.22, 1, 0.36, 1]
+
+function prefersReducedMotion() {
+  return typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+// Section headings reveal word by word instead of as one block, so the six
+// sections no longer animate identically.
+function RevealHeading({ children, className = 'section-heading', delay = 0 }) {
+  // A "\n" in the text marks a hard line break, replacing the <br /> the
+  // headings used to carry inline.
+  const lines = String(children).split('\n')
+
+  if (prefersReducedMotion()) {
+    return (
+      <h2 className={className}>
+        {lines.map((line, i) => (
+          <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
+        ))}
+      </h2>
+    )
+  }
+
+  return (
+    <motion.h2
+      className={className}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.4 }}
+      variants={{ show: { transition: { staggerChildren: 0.055, delayChildren: delay } } }}
+    >
+      {lines.map((line, li) => (
+        <span key={li}>
+          {line.split(' ').map((word, i) => (
+            <span key={i} className="reveal-word">
+              <motion.span
+                className="reveal-word-inner"
+                variants={{
+                  hidden: { opacity: 0, y: '0.6em' },
+                  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE_OUT } },
+                }}
+              >
+                {word}
+              </motion.span>
+            </span>
+          ))}
+          {li < lines.length - 1 && <br />}
+        </span>
+      ))}
+    </motion.h2>
+  )
+}
+
+// Pulls an element toward the cursor -- the same "repel/settle" idea as the
+// hero dots, so the interactions read as one system. Pointer-based devices
+// only; the CSS transition handles the spring back on leave.
+function useMagnetic(strength = 0.3) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    if (prefersReducedMotion()) return
+
+    function onMove(e) {
+      const r = el.getBoundingClientRect()
+      const x = e.clientX - (r.left + r.width / 2)
+      const y = e.clientY - (r.top + r.height / 2)
+      el.style.transform = `translate(${(x * strength).toFixed(2)}px, ${(y * strength).toFixed(2)}px)`
+    }
+    function onLeave() { el.style.transform = '' }
+
+    el.addEventListener('mousemove', onMove)
+    el.addEventListener('mouseleave', onLeave)
+    return () => {
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+      el.style.transform = ''
+    }
+  }, [strength])
+
+  return ref
+}
+
+// Thumbnail that tracks the cursor across a project card. The image is only
+// mounted while hovering, so nothing extra is fetched for cards never touched.
+function CardHoverImage({ src }) {
+  const wrapRef = useRef(null)
+  const imgRef = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap || !src) return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    if (prefersReducedMotion()) return
+
+    let frame = null
+    let tx = 0, ty = 0
+
+    function onMove(e) {
+      const r = wrap.getBoundingClientRect()
+      tx = e.clientX - r.left
+      ty = e.clientY - r.top
+      if (frame !== null) return
+      // Position writes are coalesced to one per frame; mousemove fires far
+      // more often than that and each write would otherwise force a reflow.
+      frame = requestAnimationFrame(() => {
+        frame = null
+        if (imgRef.current) {
+          imgRef.current.style.transform =
+            `translate(calc(${tx}px - 50%), calc(${ty}px - 50%))`
+        }
+      })
+    }
+    function onEnter(e) { onMove(e); setVisible(true) }
+    function onLeave() { setVisible(false) }
+
+    wrap.addEventListener('mouseenter', onEnter)
+    wrap.addEventListener('mousemove', onMove)
+    wrap.addEventListener('mouseleave', onLeave)
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame)
+      wrap.removeEventListener('mouseenter', onEnter)
+      wrap.removeEventListener('mousemove', onMove)
+      wrap.removeEventListener('mouseleave', onLeave)
+    }
+  }, [src])
+
+  return (
+    <span ref={wrapRef} className="card-hover-zone" aria-hidden="true">
+      {visible && src && (
+        <img ref={imgRef} src={src} alt="" className="card-hover-img" loading="lazy" decoding="async" />
+      )}
+    </span>
   )
 }
 
@@ -391,16 +537,25 @@ function HeroNameDots({ darkMode }) {
     build().then(() => {
       lastW = section.offsetWidth
       lastH = section.offsetHeight
-      tick()
+      // Hand the name over to the canvas only once there are dots to draw.
+      // If build() fails or the font never resolves, the real <h1> stays
+      // visible rather than leaving the hero with no name at all.
+      if (dots.length > 0) section.classList.add('dots-ready')
+      // The IntersectionObserver above has usually already started the loop
+      // by now -- it fires well before document.fonts.ready resolves. Calling
+      // tick() unguarded here would run a second rAF loop over the same dots,
+      // integrating the spring twice per frame and leaking a loop on unmount.
+      if (animId === null) animId = requestAnimationFrame(tick)
       // Play the demo sweep on all devices after a short delay
       demoTimeout = setTimeout(runDemoSweep, 900)
-    })
+    }).catch(() => { /* leave the plain <h1> showing */ })
 
     return () => {
       cancelAnimationFrame(animId)
       cancelAnimationFrame(demoAnimId)
       clearTimeout(demoTimeout)
       clearTimeout(resizeTimer)
+      section.classList.remove('dots-ready')
       io.disconnect()
       section.removeEventListener('mousemove', onMove)
       section.removeEventListener('mouseleave', onLeave)
@@ -421,6 +576,10 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [lightbox, setLightbox] = useState(null) // { photos: [], index: number }
   const isDesktop = useMediaQuery('(min-width: 900px)')
+
+  const menuBtnRef = useMagnetic(0.35)
+  const themeBtnRef = useMagnetic(0.35)
+  const emailRef = useMagnetic(0.12)
 
   // Without this the page behind a full-screen overlay still scrolls under
   // the finger on mobile, and the menu/lightbox drifts out of view.
@@ -484,7 +643,7 @@ function App() {
     <div className="portfolio" data-mode={darkMode ? 'dark' : 'light'}>
       {/* Navigation */}
       <nav className="navbar">
-        <button className="menu-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+        <button ref={menuBtnRef} className="menu-btn magnetic" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <span className="menu-icon">&#8801;</span> MENU
         </button>
         <span className="nav-logo">K B P KAVISIKA</span>
@@ -516,7 +675,8 @@ function App() {
             <FiDownload />
           </a>
           <button
-            className="theme-toggle-btn"
+            ref={themeBtnRef}
+            className="theme-toggle-btn magnetic"
             onClick={() => setDarkMode((m) => !m)}
             aria-label="Toggle dark/light mode"
           >
@@ -574,7 +734,9 @@ function App() {
             transition={{ duration: 0.9, ease: 'easeOut' }}
           >
             <p className="hero-label">SOFTWARE ENGINEER · SRI LANKA</p>
-            <h1 className="hero-display" style={{ opacity: 0 }}>
+            {/* Hidden by CSS only once .dots-ready is set, so a canvas or
+                font failure degrades to plain text instead of a blank hero. */}
+            <h1 className="hero-display">
               K B P<br />KAVISIKA
             </h1>
             <p className="hero-sub">
@@ -672,9 +834,7 @@ function App() {
           transition={{ duration: 0.7 }}
         >
           <p className="section-label">ABOUT</p>
-          <h2 className="section-heading">
-            Software Engineering<br />Undergraduate at SLIIT
-          </h2>
+          <RevealHeading>{'Software Engineering\nUndergraduate at SLIIT'}</RevealHeading>
           <div className="about-body">
             <p>
               I’m a Software Engineering undergraduate at SLIIT, passionate about building scalable 
@@ -706,15 +866,7 @@ function App() {
           >
             ACHIEVEMENTS
           </motion.p>
-          <motion.h2
-            className="section-heading"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            Awards &amp; Recognition
-          </motion.h2>
+          <RevealHeading>{'Awards & Recognition'}</RevealHeading>
           <div className="achievements-list">
             {ACHIEVEMENTS.map((a, i) => (
               <motion.div
@@ -771,15 +923,7 @@ function App() {
           >
             SKILLS
           </motion.p>
-          <motion.h2
-            className="section-heading"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            What I Work With
-          </motion.h2>
+          <RevealHeading>What I Work With</RevealHeading>
           <div className="skills-grid">
             {SKILLS.map((s, i) => (
               <motion.div
@@ -804,6 +948,26 @@ function App() {
                   })}
                 </div>
               </motion.div>
+            ))}
+          </div>
+        </div>
+        {/* Full-bleed marquee -- sits outside .section-inner so it can run
+            edge to edge. The track is rendered twice so the loop is seamless;
+            aria-hidden because the same skills are already listed above. */}
+        <div className="skills-marquee" aria-hidden="true">
+          <div className="skills-marquee-track">
+            {[0, 1].map((copy) => (
+              <div className="skills-marquee-group" key={copy}>
+                {MARQUEE_SKILLS.map((item) => {
+                  const Icon = SKILL_ICONS[item]
+                  return (
+                    <span className="marquee-item" key={`${copy}-${item}`}>
+                      {Icon && <Icon className="marquee-icon" />}
+                      {item}
+                    </span>
+                  )
+                })}
+              </div>
             ))}
           </div>
         </div>
@@ -833,6 +997,7 @@ function App() {
                   viewport={{ once: true, amount: 0.15 }}
                   transition={{ duration: 0.45, delay: (i % 2) * 0.08 }}
                 >
+                  <CardHoverImage src={p.logo} />
                   <div className="project-card-head">
                     <p className="slide-period">{p.period}</p>
                     {p.logo && (
@@ -949,7 +1114,8 @@ function App() {
         >
           <p className="section-label">MESSAGE ME</p>
           <button
-            className="email-display"
+            ref={emailRef}
+            className="email-display magnetic"
             onClick={copyEmail}
             aria-label="Copy email address"
           >

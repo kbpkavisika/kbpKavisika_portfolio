@@ -26,6 +26,8 @@ section[id] {
   --gutter: 3rem;
   --section-y: 9rem;
 
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
   background: #000;
   color: #fff;
   min-height: 100vh;
@@ -1750,4 +1752,229 @@ body.no-scroll {
   html {
     scroll-behavior: auto;
   }
+}
+
+/* ============================================================
+   TEXTURE & MOTION SYSTEM
+   ============================================================ */
+
+/* Fixed grain layer. Sits above the page but below the navbar's z-index of
+   100 would put it under the menu overlay, so it is pinned above both and
+   made click-through instead. */
+.portfolio::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.portfolio[data-mode='light']::after {
+  opacity: 0.05;
+}
+
+/* The underline wipe is drawn in currentColor, so it follows whatever the
+   link's own colour already is in each theme. */
+.overlay-link {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 92%;
+  background-size: 0 2px;
+  transition: background-size 0.45s var(--ease-out);
+}
+
+.overlay-link:hover {
+  background-size: 100% 2px;
+}
+
+/* --- Word-by-word heading reveal --- */
+/* The inner span is what moves; the outer one clips it so words rise out of
+   nothing rather than sliding over the text above. */
+.reveal-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em;
+  margin-right: 0.26em;
+}
+
+.reveal-word-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* --- Magnetic buttons --- */
+/* Only the release is transitioned; the pull itself is written per frame from
+   JS and would lag a step behind if it were eased here too. */
+.magnetic {
+  transition: transform 0.35s var(--ease-out);
+}
+
+.magnetic:hover {
+  transition: transform 0.08s linear;
+}
+
+/* --- Skills marquee --- */
+.skills-marquee {
+  margin-top: 4rem;
+  padding: 1.6rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  /* Fades both ends into the background instead of cutting items off hard. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.portfolio[data-mode='light'] .skills-marquee {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.skills-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 42s linear infinite;
+}
+
+.skills-marquee:hover .skills-marquee-track {
+  animation-play-state: paused;
+}
+
+.skills-marquee-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 1.6rem;
+  font-family: 'Big Shoulders Display', 'Inter', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.34);
+  transition: color 0.3s var(--ease-out);
+}
+
+.portfolio[data-mode='light'] .marquee-item {
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.marquee-item:hover {
+  color: #fff;
+}
+
+.portfolio[data-mode='light'] .marquee-item:hover {
+  color: #111;
+}
+
+.marquee-icon {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+/* One group is exactly half the duplicated track, so shifting by -50%
+   lands on the identical frame and the loop has no visible seam. */
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* --- Project card cursor-follow thumbnail --- */
+.project-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-hover-zone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* The card's own content sits above the thumbnail. */
+.project-card > *:not(.card-hover-zone) {
+  position: relative;
+  z-index: 1;
+}
+
+.card-hover-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 190px;
+  height: 190px;
+  object-fit: contain;
+  padding: 1.6rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  animation: cardImgIn 0.32s var(--ease-out) forwards;
+  will-change: transform;
+}
+
+.portfolio[data-mode='light'] .card-hover-img {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@keyframes cardImgIn {
+  from { opacity: 0; }
+  to   { opacity: 0.85; }
+}
+
+@media (max-width: 900px) {
+  .marquee-item {
+    font-size: 1.25rem;
+    padding: 0 1.1rem;
+  }
+
+  .skills-marquee {
+    margin-top: 3rem;
+  }
+}
+
+/* Every effect added above is decorative, so all of it stops here. */
+@media (prefers-reduced-motion: reduce) {
+  .skills-marquee-track {
+    animation: none;
+    /* Without the scroll, only the first group would be reachable -- let it
+       scroll by hand instead of hiding the overflow. */
+    width: 100%;
+  }
+
+  .skills-marquee {
+    overflow-x: auto;
+  }
+
+  .magnetic {
+    transition: none;
+  }
+
+  .card-hover-img {
+    display: none;
+  }
+
+  .overlay-link {
+    transition: none;
+  }
+}
+
+/* The <h1> renders the name as a static CSS dot pattern. It stays visible
+   until HeroNameDots confirms it has a populated dot field, so a canvas or
+   font failure leaves a styled name rather than an empty hero. */
+.hero.dots-ready .hero-display {
+  opacity: 0;
+}
+
+.hero-display {
+  transition: opacity 0.25s linear;
 }
