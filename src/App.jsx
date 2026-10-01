@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from '
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaGithub, FaLinkedin, FaJava, FaPython, FaReact, FaNodeJs, FaGit, FaDocker, FaDatabase } from 'react-icons/fa'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs'
-import { SiJavascript, SiTypescript, SiExpress, SiNextdotjs, SiMysql, SiMongodb, SiPostgresql, SiPostman, SiApachetomcat, SiFigma, SiAndroidstudio, SiGnubash, SiSpringboot, SiTailwindcss, SiSqlite, SiKubernetes, SiElectron, SiExpo } from 'react-icons/si'
+import { SiJavascript, SiTypescript, SiExpress, SiNextdotjs, SiMysql, SiMongodb, SiPostgresql, SiPostman, SiApachetomcat, SiFigma, SiAndroidstudio, SiGnubash, SiSpringboot, SiTailwindcss, SiSqlite, SiKubernetes, SiElectron, SiExpo, SiSpring, SiSpringsecurity, SiHibernate, SiVite, SiGithubactions, SiVercel, SiRender, SiJsonwebtokens } from 'react-icons/si'
 import { FiSun, FiMoon, FiDownload } from 'react-icons/fi'
 import codefest1 from './img/codefest-1.jpg'
 import codefest2 from './img/codefest-2.jpg'
@@ -13,9 +13,20 @@ import hackX3 from './img/hackX-3.jpg'
 import zfitLogo from './img/Zfit-logo.png'
 import resqLogo from './img/resq-logo.png'
 import ceylonLogo from './img/CeylonSC-logo.png'
+import redlinkLogo from './img/RedLink-logo.png'
 import './App.css'
 
 const PROJECTS = [
+  {
+    period: 'SEP 2026 — PRESENT',
+    role: 'RedLink — Blood Donor Matching System',
+    company: 'Full-Stack Project · Ongoing',
+    logo: redlinkLogo,
+    description:
+      "Building a system that finds and ranks suitable blood donors for a hospital's urgent request in seconds, replacing manual phone calls. Created role-based access for admins, hospital staff, and donors, with donor contact details shared only after a donor accepts. Developing and testing secure REST APIs and deploying the full application live on the cloud with automated CI/CD.",
+    tags: ['React', 'TypeScript', 'Vite', 'Java', 'Spring Boot', 'Spring Data JPA', 'Spring Security', 'JWT', 'PostgreSQL', 'REST API', 'GitHub Actions', 'Vercel', 'Render', 'Neon'],
+    link: 'https://github.com/kbpkavisika/RedLink',
+  },
   {
     period: 'JUL — OCT 2025',
     role: 'ZFit — Gym Management System',
@@ -99,16 +110,16 @@ const SKILLS = [
     items: ['Java', 'Python', 'JavaScript', 'TypeScript', 'SQL', 'Bash'],
   },
   {
-    title: 'Frameworks & Libraries',
-    items: ['Spring Boot', 'React', 'React Native', 'Next.js', 'Node.js', 'Express.js', 'JSP', 'Servlets', 'Tailwind CSS'],
-  },
-  {
     title: 'Databases',
     items: ['MySQL', 'PostgreSQL', 'MongoDB', 'SQLite'],
   },
   {
+    title: 'Frameworks & Libraries',
+    items: ['Spring Boot', 'Spring Security', 'Spring Data JPA', 'Hibernate', 'JWT', 'React', 'React Native', 'Next.js', 'Node.js', 'Express.js', 'JSP', 'Servlets', 'Tailwind CSS', 'Vite'],
+  },
+  {
     title: 'Tools & Platforms',
-    items: ['Git', 'GitHub', 'Docker', 'Kubernetes', 'Postman', 'Apache Tomcat', 'Electron', 'Expo', 'Android Studio', 'Figma'],
+    items: ['Git', 'GitHub', 'GitHub Actions', 'Docker', 'Kubernetes', 'Vercel', 'Render', 'Postman', 'Apache Tomcat', 'Electron', 'Expo', 'Android Studio', 'Figma'],
   },
 ]
 
@@ -135,6 +146,10 @@ const SKILL_ICONS = {
   'SQL': FaDatabase,
   'Bash': SiGnubash,
   'Spring Boot': SiSpringboot,
+  'Spring Security': SiSpringsecurity,
+  'Spring Data JPA': SiSpring,
+  'Hibernate': SiHibernate,
+  'JWT': SiJsonwebtokens,
   'React': FaReact,
   'React Native': FaReact,
   'Next.js': SiNextdotjs,
@@ -143,14 +158,18 @@ const SKILL_ICONS = {
   'JSP': FaJava,
   'Servlets': FaJava,
   'Tailwind CSS': SiTailwindcss,
+  'Vite': SiVite,
   'MySQL': SiMysql,
   'MongoDB': SiMongodb,
   'PostgreSQL': SiPostgresql,
   'SQLite': SiSqlite,
   'Git': FaGit,
   'GitHub': FaGithub,
+  'GitHub Actions': SiGithubactions,
   'Docker': FaDocker,
   'Kubernetes': SiKubernetes,
+  'Vercel': SiVercel,
+  'Render': SiRender,
   'Postman': SiPostman,
   'Apache Tomcat': SiApachetomcat,
   'Electron': SiElectron,
@@ -158,10 +177,6 @@ const SKILL_ICONS = {
   'Figma': SiFigma,
   'Android Studio': SiAndroidstudio,
 }
-
-// Flattened once at module scope -- the marquee renders this list twice per
-// frame-loop and there is no reason to rebuild it on every render.
-const MARQUEE_SKILLS = SKILLS.flatMap((s) => s.items)
 
 const NAV_ITEMS = ['home', 'about', 'achievements', 'skills', 'work', 'contact']
 const EMAIL = 'kbpkavisika@gmail.com'
@@ -193,11 +208,14 @@ function prefersReducedMotion() {
 // Section headings reveal word by word instead of as one block, so the six
 // sections no longer animate identically.
 function RevealHeading({ children, className = 'section-heading', delay = 0 }) {
+  // Subscribes to the query rather than reading it once, so toggling the OS
+  // setting takes effect without a reload.
+  const reduced = useMediaQuery('(prefers-reduced-motion: reduce)')
   // A "\n" in the text marks a hard line break, replacing the <br /> the
   // headings used to carry inline.
   const lines = String(children).split('\n')
 
-  if (prefersReducedMotion()) {
+  if (reduced) {
     return (
       <h2 className={className}>
         {lines.map((line, i) => (
@@ -269,57 +287,91 @@ function useMagnetic(strength = 0.3) {
   return ref
 }
 
-// Thumbnail that tracks the cursor across a project card. The image is only
-// mounted while hovering, so nothing extra is fetched for cards never touched.
-function CardHoverImage({ src }) {
-  const wrapRef = useRef(null)
-  const imgRef = useRef(null)
-  const [visible, setVisible] = useState(false)
+// "JUL — OCT 2025" -> "2025"; an open-ended period keeps its own wording so
+// the ongoing work is not stamped with a finished-looking year.
+function displayYear(period) {
+  if (/ONGOING/i.test(period)) return 'ONGOING'
+  const years = period.match(/\d{4}/g)
+  return years ? years[years.length - 1] : period
+}
 
-  useEffect(() => {
-    const wrap = wrapRef.current
-    if (!wrap || !src) return
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    if (prefersReducedMotion()) return
+// "ZFit — Gym Management System" -> ["ZFit", "Gym Management System"].
+// Projects without the dash fall back to their company line for the subtitle.
+function splitRole(role, company) {
+  const parts = role.split(/\s+—\s+/)
+  if (parts.length > 1) return [parts[0], parts.slice(1).join(' — ')]
+  return [role, company]
+}
 
-    let frame = null
-    let tx = 0, ty = 0
-
-    function onMove(e) {
-      const r = wrap.getBoundingClientRect()
-      tx = e.clientX - r.left
-      ty = e.clientY - r.top
-      if (frame !== null) return
-      // Position writes are coalesced to one per frame; mousemove fires far
-      // more often than that and each write would otherwise force a reflow.
-      frame = requestAnimationFrame(() => {
-        frame = null
-        if (imgRef.current) {
-          imgRef.current.style.transform =
-            `translate(calc(${tx}px - 50%), calc(${ty}px - 50%))`
-        }
-      })
-    }
-    function onEnter(e) { onMove(e); setVisible(true) }
-    function onLeave() { setVisible(false) }
-
-    wrap.addEventListener('mouseenter', onEnter)
-    wrap.addEventListener('mousemove', onMove)
-    wrap.addEventListener('mouseleave', onLeave)
-    return () => {
-      if (frame !== null) cancelAnimationFrame(frame)
-      wrap.removeEventListener('mouseenter', onEnter)
-      wrap.removeEventListener('mousemove', onMove)
-      wrap.removeEventListener('mouseleave', onLeave)
-    }
-  }, [src])
+// One row of the project index. Collapsed it is a single typographic line;
+// the full write-up is mounted only while the row is open, so the section
+// stays short no matter how many projects the list grows to.
+function ProjectRow({ project, index }) {
+  const [open, setOpen] = useState(false)
+  const [name, subtitle] = splitRole(project.role, project.company)
+  const panelId = `project-panel-${index}`
 
   return (
-    <span ref={wrapRef} className="card-hover-zone" aria-hidden="true">
-      {visible && src && (
-        <img ref={imgRef} src={src} alt="" className="card-hover-img" loading="lazy" decoding="async" />
-      )}
-    </span>
+    <li className={`project-row${open ? ' open' : ''}`}>
+      <button
+        className="project-row-head"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls={panelId}
+      >
+        <span className="project-row-num">{String(index + 1).padStart(2, '0')}</span>
+        <span className="project-row-main">
+          <span className="project-row-name">{name}</span>
+          <span className="project-row-sub">{subtitle}</span>
+          {/* Three tags is enough to place the project at a glance; the full
+              list is in the panel for anyone who opens it. */}
+          <span className="project-row-stack">{project.tags.slice(0, 3).join(' · ')}</span>
+        </span>
+        <span className="project-row-year">{displayYear(project.period)}</span>
+        <span className="project-row-toggle" aria-hidden="true" />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id={panelId}
+            className="project-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.38, ease: EASE_OUT }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="project-panel-inner">
+              {project.logo && (
+                <div className="project-panel-logo">
+                  <img src={project.logo} alt="" loading="lazy" decoding="async" />
+                </div>
+              )}
+              <div className="project-panel-body">
+                <p className="project-panel-period">{project.period} · {project.company}</p>
+                <p className="project-panel-desc">{project.description}</p>
+                <div className="slide-tags">
+                  {project.tags.map((t) => (
+                    <span key={t} className="slide-tag">{t}</span>
+                  ))}
+                </div>
+                {project.link !== '#' && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="slide-link"
+                  >
+                    View Project <BsArrowRight />
+                  </a>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </li>
   )
 }
 
@@ -365,8 +417,52 @@ function HeroNameDots({ darkMode }) {
       return { x, y }
     }
 
+    // document.fonts.ready only waits for whatever was already pending. On a
+    // cold load this effect can run before the stylesheet has even requested
+    // Big Shoulders Display, so nothing is pending, it resolves immediately,
+    // and the offscreen canvas rasterises the name in fallback sans-serif --
+    // different letterforms and different metrics from what CSS paints. A
+    // refresh hides the bug because the font is then served from cache.
+    // Asking for the exact face by name forces the fetch and waits for it.
+    const NAME_FAMILY = 'Big Shoulders Display'
+    const NAME_SAMPLE = 'KBP KAVISIKA'
+    let fontConfirmed = false
+
+    // document.fonts.check() reports true for a family it has never heard of,
+    // because an unknown family "resolves" to an already-available system
+    // font. On a cold load the Google Fonts stylesheet may not have parsed
+    // yet, so the @font-face does not exist and check() would wave us through
+    // onto the fallback. Looking for the actual loaded face says no in both
+    // the not-yet-registered and the still-loading case.
+    function faceLoaded() {
+      try {
+        for (const f of document.fonts) {
+          if (f.family.replace(/["']/g, '') === NAME_FAMILY && f.status === 'loaded') {
+            return true
+          }
+        }
+      } catch { /* FontFaceSet not iterable */ }
+      return false
+    }
+
+    async function ensureNameFont(px) {
+      try {
+        await document.fonts.load(`900 ${px}px "${NAME_FAMILY}"`, NAME_SAMPLE)
+      } catch { /* fall back to whatever the canvas resolves */ }
+      try {
+        await document.fonts.ready
+      } catch { /* ignore */ }
+      return faceLoaded()
+    }
+
     async function build() {
-      await document.fonts.ready
+      const probe = section.querySelector('.hero-display')
+      if (!probe) return
+      // Resolve the face at the size CSS will actually paint, before any
+      // measurement below -- the fallback's metrics differ, so the width and
+      // offsets all shift the moment the real font swaps in.
+      fontConfirmed = await ensureNameFont(parseFloat(window.getComputedStyle(probe).fontSize))
+
       const W = section.offsetWidth
       const H = section.offsetHeight
       canvas.width  = W
@@ -414,8 +510,14 @@ function HeroNameDots({ darkMode }) {
       }
     }
 
-    function tick() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // REPEL_STR, SPRING and DAMP were tuned by feel back when two rAF loops
+    // were driving this same dot field, so the simulation was really being
+    // advanced twice per frame. Now that there is a single loop, the physics
+    // is stepped twice explicitly -- same motion as before, but deterministic
+    // rather than dependent on which loop happened to start first.
+    const SUBSTEPS = 2
+
+    function step() {
       for (const d of dots) {
         const dx    = d.x - mouse.x
         const dy    = d.y - mouse.y
@@ -434,15 +536,25 @@ function HeroNameDots({ darkMode }) {
         d.vy *= DAMP
         d.x  += d.vx
         d.y  += d.vy
+      }
+    }
 
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      const ch = darkModeRef.current ? '255,255,255' : '0,0,0'
+      for (const d of dots) {
         const spread = Math.hypot(d.x - d.ox, d.y - d.oy)
         const alpha  = Math.min(0.95, 0.72 + spread * 0.015)
-        const ch = darkModeRef.current ? '255,255,255' : '0,0,0'
         ctx.fillStyle = `rgba(${ch},${alpha.toFixed(2)})`
         ctx.beginPath()
         ctx.arc(d.x, d.y, 1.3, 0, Math.PI * 2)
         ctx.fill()
       }
+    }
+
+    function tick() {
+      for (let n = 0; n < SUBSTEPS; n++) step()
+      draw()
       animId = requestAnimationFrame(tick)
     }
 
@@ -534,6 +646,19 @@ function HeroNameDots({ darkMode }) {
     }, { threshold: 0 })
     io.observe(section)
 
+    // Belt and braces: if the face still was not ready when we rasterised
+    // (slow network, or a check that returned false), rebuild once it lands
+    // so the dots match the text the browser is painting.
+    function onFontsDone() {
+      // Fires for every font the page loads, so bail unless it is ours and
+      // the first rasterisation actually missed it.
+      if (fontConfirmed || !faceLoaded()) return
+      lastW = section.offsetWidth
+      lastH = section.offsetHeight
+      build()
+    }
+    document.fonts?.addEventListener?.('loadingdone', onFontsDone)
+
     build().then(() => {
       lastW = section.offsetWidth
       lastH = section.offsetHeight
@@ -555,6 +680,7 @@ function HeroNameDots({ darkMode }) {
       cancelAnimationFrame(demoAnimId)
       clearTimeout(demoTimeout)
       clearTimeout(resizeTimer)
+      document.fonts?.removeEventListener?.('loadingdone', onFontsDone)
       section.classList.remove('dots-ready')
       io.disconnect()
       section.removeEventListener('mousemove', onMove)
@@ -572,10 +698,8 @@ function HeroNameDots({ darkMode }) {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
-  const [projectIndex, setProjectIndex] = useState(0)
   const [copied, setCopied] = useState(false)
   const [lightbox, setLightbox] = useState(null) // { photos: [], index: number }
-  const isDesktop = useMediaQuery('(min-width: 900px)')
 
   const menuBtnRef = useMagnetic(0.35)
   const themeBtnRef = useMagnetic(0.35)
@@ -626,11 +750,6 @@ function App() {
       setTimeout(() => setCopied(false), 2000)
     })
   }, [])
-
-  const prevProject = () =>
-    setProjectIndex((i) => (i - 1 + PROJECTS.length) % PROJECTS.length)
-  const nextProject = () =>
-    setProjectIndex((i) => (i + 1) % PROJECTS.length)
 
   const scrollTo = (id) => {
     setMenuOpen(false)
@@ -951,155 +1070,29 @@ function App() {
             ))}
           </div>
         </div>
-        {/* Full-bleed marquee -- sits outside .section-inner so it can run
-            edge to edge. The track is rendered twice so the loop is seamless;
-            aria-hidden because the same skills are already listed above. */}
-        <div className="skills-marquee" aria-hidden="true">
-          <div className="skills-marquee-track">
-            {[0, 1].map((copy) => (
-              <div className="skills-marquee-group" key={copy}>
-                {MARQUEE_SKILLS.map((item) => {
-                  const Icon = SKILL_ICONS[item]
-                  return (
-                    <span className="marquee-item" key={`${copy}-${item}`}>
-                      {Icon && <Icon className="marquee-icon" />}
-                      {item}
-                    </span>
-                  )
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
 
-      {/* Projects Slider */}
+      {/* Projects */}
       <section id="work" className="work-section">
         <div className="section-inner">
-          <motion.p
-            className="section-label"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            PROJECTS
-          </motion.p>
-          {isDesktop ? (
-            /* Desktop: every project visible at once, no clicking through. */
-            <div className="projects-grid">
-              {PROJECTS.map((p, i) => (
-                <motion.article
-                  key={p.role}
-                  className="project-card"
-                  initial={{ opacity: 0, y: 28 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.15 }}
-                  transition={{ duration: 0.45, delay: (i % 2) * 0.08 }}
-                >
-                  <CardHoverImage src={p.logo} />
-                  <div className="project-card-head">
-                    <p className="slide-period">{p.period}</p>
-                    {p.logo && (
-                      <div className="project-card-logo">
-                        <img src={p.logo} alt="" loading="lazy" decoding="async" />
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="project-card-title">{p.role}</h3>
-                  <p className="slide-company">{p.company}</p>
-                  <p className="project-card-desc">{p.description}</p>
-                  <div className="slide-tags">
-                    {p.tags.map((t) => (
-                      <span key={t} className="slide-tag">{t}</span>
-                    ))}
-                  </div>
-                  {p.link !== '#' && (
-                    <a
-                      href={p.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="slide-link"
-                    >
-                      View Project <BsArrowRight />
-                    </a>
-                  )}
-                </motion.article>
-              ))}
-            </div>
-          ) : (
-            /* Mobile: one at a time, advanced by swipe or by the arrows. */
-            <div className="slider-layout">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={projectIndex}
-                  className="slide-content"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.35, ease: 'easeInOut' }}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.18}
-                  dragDirectionLock
-                  onDragEnd={(e, info) => {
-                    // Either a decisive distance or a quick flick counts.
-                    if (Math.abs(info.offset.x) < 70 && Math.abs(info.velocity.x) < 450) return
-                    if (info.offset.x < 0) nextProject()
-                    else prevProject()
-                  }}
-                >
-                  <div className="slide-text-col">
-                    <p className="slide-period">{PROJECTS[projectIndex].period}</p>
-                    <h2 className="slide-title">{PROJECTS[projectIndex].role}</h2>
-                    <p className="slide-company">{PROJECTS[projectIndex].company}</p>
-                    <p className="slide-desc">{PROJECTS[projectIndex].description}</p>
-                    <div className="slide-tags">
-                      {PROJECTS[projectIndex].tags.map((t) => (
-                        <span key={t} className="slide-tag">{t}</span>
-                      ))}
-                    </div>
-                    {PROJECTS[projectIndex].link !== '#' && (
-                      <a
-                        href={PROJECTS[projectIndex].link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="slide-link"
-                      >
-                        View Project <BsArrowRight />
-                      </a>
-                    )}
-                  </div>
-                  {'logo' in PROJECTS[projectIndex] && (
-                    <div className="slide-logo-col">
-                      <div className="slide-logo">
-                        {PROJECTS[projectIndex].logo ? (
-                          <img src={PROJECTS[projectIndex].logo} alt={`${PROJECTS[projectIndex].role} logo`} />
-                        ) : (
-                          <span className="slide-logo-text">
-                            {PROJECTS[projectIndex].role.charAt(0)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-
-              <div className="slider-controls">
-                <button className="slider-btn" onClick={prevProject} aria-label="Previous project">
-                  <BsArrowLeft />
-                </button>
-                <span className="slider-indicator">
-                  {String(projectIndex + 1).padStart(2, '0')} / {String(PROJECTS.length).padStart(2, '0')}
-                </span>
-                <button className="slider-btn" onClick={nextProject} aria-label="Next project">
-                  <BsArrowRight />
-                </button>
-                <span className="slider-hint">SWIPE</span>
-              </div>
-            </div>
-          )}
+          <div className="work-head">
+            <motion.p
+              className="section-label"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              PROJECTS
+            </motion.p>
+            <span className="work-count">{String(PROJECTS.length).padStart(2, '0')}</span>
+          </div>
+          <RevealHeading>Selected Work</RevealHeading>
+          <ul className="project-index">
+            {PROJECTS.map((p, i) => (
+              <ProjectRow key={p.role} project={p} index={i} />
+            ))}
+          </ul>
         </div>
       </section>
 
