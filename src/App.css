@@ -31,8 +31,22 @@ section[id] {
   background: #000;
   color: #fff;
   min-height: 100vh;
+  /* Own stacking context, so the starfield's z-index: -1 lands above this
+     background but below every section. */
+  position: relative;
+  z-index: 0;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Page-wide starfield, pinned to the viewport behind all content */
+.starfield-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Stops background scroll while the menu or lightbox is open (iOS included) */
@@ -676,6 +690,30 @@ body.no-scroll {
   align-items: center;
   justify-content: center;
   min-height: 80vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Floats in the bottom-right corner, clear of the centred email */
+.contact-astronaut {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 2.5rem;
+  width: clamp(170px, 17vw, 240px);
+  aspect-ratio: 1 / 1.15;
+  pointer-events: none;
+}
+
+/* No spare corner on narrow screens, so it joins the column under the text */
+@media (max-width: 900px) {
+  .contact-section {
+    flex-direction: column;
+  }
+  .contact-astronaut {
+    position: static;
+    width: 160px;
+    margin-top: 2.5rem;
+  }
 }
 
 .contact-inner {

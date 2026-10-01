@@ -377,6 +377,337 @@ function ProjectRow({ project, index }) {
   )
 }
 
+// Page-wide deep-space backdrop: faint stars that twinkle and drift left,
+// bigger ones faster, for a touch of parallax. The canvas is fixed to the
+// viewport behind every section, so the sky stays put while the page
+// scrolls over it. Static when the user prefers reduced motion.
+function StarfieldBackdrop({ darkMode }) {
+  const canvasRef = useRef(null)
+  const darkModeRef = useRef(darkMode)
+
+  useEffect(() => {
+    darkModeRef.current = darkMode
+  }, [darkMode])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const REDUCED = prefersReducedMotion()
+    let field = []
+    let animId = null
+    let lastTick = 0
+    let clock = 0
+
+    function build() {
+      const W = window.innerWidth, H = window.innerHeight
+      canvas.width  = W
+      canvas.height = H
+      const count = Math.round(Math.min(420, (W * H) / 5000))
+      field = []
+      for (let i = 0; i < count; i++) {
+        const size = 0.4 + Math.random() * Math.random() * 1.1
+        field.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size,
+          base:  0.12 + Math.random() * 0.38,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.6 + Math.random() * 1.8,
+          drift: 1.5 + size * 4, // bigger = "closer" = faster parallax
+        })
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      const ch = darkModeRef.current ? '255,255,255' : '0,0,0'
+      for (const s of field) {
+        const a = REDUCED ? s.base : s.base * (0.55 + 0.45 * Math.sin(clock * s.speed + s.phase))
+        ctx.fillStyle = `rgba(${ch},${a.toFixed(2)})`
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
+    function tick(now) {
+      // Clamped so the stars do not jump after the tab was in the background
+      const dt = lastTick ? Math.min((now - lastTick) / 1000, 0.05) : 0
+      lastTick = now
+      clock += dt
+      for (const s of field) {
+        s.x -= s.drift * dt
+        if (s.x < -2) { s.x = canvas.width + 2; s.y = Math.random() * canvas.height }
+      }
+      draw()
+      animId = requestAnimationFrame(tick)
+    }
+
+    // Debounced like the hero: a mobile URL bar showing/hiding fires resize
+    // repeatedly, and reseeding the sky on every one would flicker.
+    let resizeTimer = null
+    function onResize() {
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        build()
+        if (REDUCED) draw()
+      }, 150)
+    }
+    window.addEventListener('resize', onResize)
+
+    build()
+    if (REDUCED) draw()
+    else animId = requestAnimationFrame(tick)
+
+    return () => {
+      cancelAnimationFrame(animId)
+      clearTimeout(resizeTimer)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [])
+
+  // The reduced-motion sky is painted once, so repaint it on a theme switch.
+  useEffect(() => {
+    if (!prefersReducedMotion()) return
+    window.dispatchEvent(new Event('resize'))
+  }, [darkMode])
+
+  return <canvas ref={canvasRef} className="starfield-canvas" aria-hidden="true" />
+}
+
+// A little dot-drawn astronaut floating on a tether in the contact section,
+// juggling a ringed planet, a moon and a star. Same dot language as the
+// hero. Drawn in "cell" units through a canvas transform, so the whole
+// figure can bob and sway as one piece.
+const ASTRONAUT = [
+  '.......#######.......',
+  '.....##-------##.....',
+  '....#-----------#....',
+  '...#--ooooooooo--#...',
+  '..#--ooooooooooo--#..',
+  '..#-oooooooooo##o-#..',
+  '..#-ooooooooooo#o-#..',
+  '..#-ooooooooooooo-#..',
+  '..#--ooooooooooo--#..',
+  '...#--ooooooooo--#...',
+  '....#-----------#....',
+  '.....###########.....',
+  '...###############...',
+  '..#---------------#..',
+  '..#---#######-----#..',
+  '..#---#-#-#-#--##-#..',
+  '..#---#######--##-#..',
+  '..#---------------#..',
+  '..#---------------#..',
+  '...###############...',
+  '...#-----#.#-----#...',
+  '...#-----#.#-----#...',
+  '...#-----#.#-----#...',
+  '..#-----#...#-----#..',
+  '..#-----#...#-----#..',
+  '.#######.....#######.',
+  '.#######.....#######.',
+]
+// Alpha per character: outline, suit fill, dark visor glass
+const ASTRO_SHADE = { '#': 0.9, '-': 0.32, o: 0.1 }
+
+function ContactAstronaut({ darkMode }) {
+  const canvasRef = useRef(null)
+  const darkModeRef = useRef(darkMode)
+
+  useEffect(() => {
+    darkModeRef.current = darkMode
+  }, [darkMode])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const REDUCED = prefersReducedMotion()
+
+    // Body cells grouped by shade, centred on the chest
+    const cy0 = (ASTRONAUT.length - 1) / 2, cx0 = (ASTRONAUT[0].length - 1) / 2
+    const body = { '#': [], '-': [], o: [] }
+    ASTRONAUT.forEach((row, j) => {
+      for (let i = 0; i < row.length; i++) {
+        if (body[row[i]]) body[row[i]].push([i - cx0, j - cy0])
+      }
+    })
+
+    // The three juggled objects, as dot clouds around their own centre
+    function disc(r) {
+      const out = []
+      for (let j = -r; j <= r; j++) {
+        for (let i = -r; i <= r; i++) if (i * i + j * j <= r * r + 0.5) out.push([i, j])
+      }
+      return out
+    }
+    const planet = disc(2)
+    const ring = []
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * Math.PI * 2
+      if (Math.sin(a) < -0.2) continue // back of the ring hides behind the planet
+      ring.push([Math.cos(a) * 4, Math.sin(a) * 1.3])
+    }
+    const moon = disc(2).filter(([i, j]) => !(i === 1 && j === -1) && !(i === -1 && j === 1))
+    const star = [[0, 0], [0, -1], [0, -2], [0, 1], [-1, 0], [-2, 0], [1, 0], [2, 0],
+      [-1, 1.6], [1, 1.6], [-1.5, 2.4], [1.5, 2.4]]
+    const balls = [
+      { shape: planet, extra: ring, phase: 0 },
+      { shape: moon,   extra: null, phase: 2 / 3 },
+      { shape: star,   extra: null, phase: 4 / 3 },
+    ]
+
+    let W = 0, H = 0, CELL = 4.5
+    let animId = null, lastTick = 0, t = 0
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      W = canvas.clientWidth
+      H = canvas.clientHeight
+      canvas.width  = Math.round(W * dpr)
+      canvas.height = Math.round(H * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      CELL = W / 58
+    }
+
+    function dots(cells, ox, oy, r, alpha, ch, rot = 0) {
+      const c = Math.cos(rot), s = Math.sin(rot)
+      ctx.fillStyle = `rgba(${ch},${alpha})`
+      ctx.beginPath()
+      for (const [u, v] of cells) {
+        const x = ox + u * c - v * s, y = oy + u * s + v * c
+        ctx.moveTo(x + r, y)
+        ctx.arc(x, y, r, 0, Math.PI * 2)
+      }
+      ctx.fill()
+    }
+
+    // A limb is just dots strung along shoulder -> elbow -> hand
+    function limb(points) {
+      const out = []
+      for (let k = 0; k < points.length - 1; k++) {
+        const [ax, ay] = points[k], [bx, by] = points[k + 1]
+        const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 0.7)
+        for (let m = 0; m <= n; m++) out.push([ax + (bx - ax) * m / n, ay + (by - ay) * m / n])
+      }
+      return out
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H)
+      const ch = darkModeRef.current ? '255,255,255' : '0,0,0'
+
+      // Whole figure floats: slow bob plus a gentle sway
+      const bob = Math.sin(t * 0.9) * 1.6
+      const sway = Math.sin(t * 0.55) * 0.09
+      const cx = W * 0.5, cy = H * 0.62
+
+      // Tether: from the hip out past the right edge, drifting with the body
+      ctx.save()
+      ctx.translate(cx, cy + bob * CELL)
+      ctx.rotate(sway)
+      ctx.scale(CELL, CELL)
+      const tx = 9, ty = 6
+      const endX = (W - cx) / CELL + 4, endY = (H - cy) / CELL + Math.sin(t * 0.7) * 2
+      const tether = []
+      for (let k = 0; k <= 40; k++) {
+        const p = k / 40
+        const sag = Math.sin(p * Math.PI) * (5 + Math.sin(t * 0.8) * 1.5)
+        tether.push([tx + (endX - tx) * p, ty + (endY - ty) * p + sag])
+      }
+      // Fades out toward the far end rather than stopping at the canvas edge
+      for (let k = 0; k < tether.length; k += 5) {
+        const a = 0.4 * (1 - k / tether.length)
+        dots(tether.slice(k, k + 5), 0, 0, 0.16, a.toFixed(2), ch)
+      }
+
+      // Juggling: three objects on a cascade between the hands, each thrown
+      // in a high arc to the other hand. A hand dips as it throws.
+      const FLIGHT = 0.9 // seconds per throw
+      const hands = { L: [-14, 2], R: [14, 2] }
+      let dipL = 0, dipR = 0
+      for (const b of balls) {
+        const p = ((t / FLIGHT + b.phase * 1.5) % 3) / 1.5 // 0..2
+        const fromL = p < 1
+        const q = fromL ? p : p - 1
+        const [ax, ay] = fromL ? hands.L : hands.R
+        const [bx, by] = fromL ? hands.R : hands.L
+        const x = ax + (bx - ax) * q
+        const y = ay + (by - ay) * q - 58 * q * (1 - q) // apex clears the helmet
+        if (q < 0.12) {
+          if (fromL) dipL = Math.max(dipL, 1 - q / 0.12)
+          else dipR = Math.max(dipR, 1 - q / 0.12)
+        }
+        const spin = t * 1.6 + b.phase * 3
+        dots(b.shape, x, y - 2.5, 0.42, 0.85, ch, b.extra ? 0 : spin)
+        if (b.extra) dots(b.extra, x, y - 2.5, 0.3, 0.6, ch, 0.35)
+      }
+
+      // Arms: shoulder -> elbow -> glove, gloves dip on each throw
+      const handL = [-14, 2 + dipL * 1.2], handR = [14, 2 + dipR * 1.2]
+      dots(limb([[-8, 0], [-11.5, 5], handL]), 0, 0, 0.62, 0.7, ch)
+      dots(limb([[8, 0], [11.5, 5], handR]), 0, 0, 0.62, 0.7, ch)
+      dots(disc(1), handL[0], handL[1], 0.5, 0.9, ch)
+      dots(disc(1), handR[0], handR[1], 0.5, 0.9, ch)
+
+      // Body last so the shoulders sit over the arm roots
+      for (const k of ['o', '-', '#']) dots(body[k], 0, 0, 0.42, ASTRO_SHADE[k], ch)
+
+      // Visor glint drifts across the glass
+      const gx = -3 + ((t * 0.4) % 1) * 8
+      dots([[gx, -9], [gx + 0.8, -8.2]], 0, 0, 0.3, 0.55, ch)
+      ctx.restore()
+    }
+
+    function tick(now) {
+      const dt = lastTick ? Math.min((now - lastTick) / 1000, 0.05) : 0
+      lastTick = now
+      t += dt
+      draw()
+      animId = requestAnimationFrame(tick)
+    }
+
+    resize()
+    // Reduced motion: a single still frame, mid-juggle
+    t = 0.4
+    draw()
+
+    const ro = new ResizeObserver(() => { resize(); draw() })
+    ro.observe(canvas)
+    function onRepaint() { draw() }
+    canvas.addEventListener('repaint', onRepaint)
+
+    // Only animate while the section is on screen
+    const io = new IntersectionObserver(([entry]) => {
+      if (REDUCED) return
+      if (entry.isIntersecting) {
+        if (animId === null) { lastTick = 0; animId = requestAnimationFrame(tick) }
+      } else if (animId !== null) {
+        cancelAnimationFrame(animId)
+        animId = null
+      }
+    }, { threshold: 0 })
+    io.observe(canvas)
+
+    return () => {
+      cancelAnimationFrame(animId)
+      canvas.removeEventListener('repaint', onRepaint)
+      ro.disconnect()
+      io.disconnect()
+    }
+  }, [])
+
+  // Repaint the still frame on a theme switch when not animating
+  useEffect(() => {
+    if (!prefersReducedMotion()) return
+    canvasRef.current?.dispatchEvent(new Event('repaint'))
+  }, [darkMode])
+
+  return <canvas ref={canvasRef} className="contact-astronaut" aria-hidden="true" />
+}
+
 function HeroNameDots({ darkMode }) {
   const canvasRef = useRef(null)
   const darkModeRef = useRef(darkMode)
@@ -405,6 +736,27 @@ function HeroNameDots({ darkMode }) {
     const SPRING    = 0.055
     const DAMP      = 0.76
     const GAP       = 5
+
+    // Spiral galaxy drawn in the empty space right of the name. Its stars
+    // run through the same spring/repel step as the name dots, but their
+    // home position orbits the core every frame, so the cursor can scatter
+    // the galaxy and it reforms while it keeps turning.
+    let stars = []
+    const galaxy = { cx: 0, cy: 0, R: 0, fade: 1, spin: 0 }
+    const ARMS      = 3
+    const TWIST     = 3.4                 // radians of wind from core to rim
+    // Negative = counter-clockwise on screen, which also makes the arms
+    // trail behind the spin the way a real spiral galaxy's do.
+    const SPIN_RATE = prefersReducedMotion() ? 0 : -0.11 // rad/s
+    const INCL      = Math.cos(1.05)      // disc viewed ~60° off face-on
+    const TILT      = -0.38               // whole disc leans like "\"
+    const COS_T = Math.cos(TILT), SIN_T = Math.sin(TILT)
+    let lastTick = 0
+
+    function randn() {
+      const u = 1 - Math.random(), v = Math.random()
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+    }
 
     // Layout position relative to the section, accumulated through the
     // offsetParent chain. Unlike getBoundingClientRect() this ignores CSS
@@ -510,6 +862,242 @@ function HeroNameDots({ darkMode }) {
           }
         }
       }
+
+      buildGalaxy(W, H, ox + Math.max(
+        oCtx.measureText('K B P').width,
+        oCtx.measureText('KAVISIKA').width,
+      ), oy + lh)
+    }
+
+    // Sits centred in whatever room the name leaves on the right. When the
+    // name fills the width (phones, narrow windows) there is no such room,
+    // so the galaxy moves behind the text and fades right down instead.
+    function buildGalaxy(W, H, nameRight, nameMidY) {
+      const rightEdge = W - parseFloat(window.getComputedStyle(section).paddingRight)
+      const free = rightEdge - nameRight
+      const cramped = free < 280
+
+      galaxy.cx   = cramped ? W * 0.68 : nameRight + free * 0.52
+      galaxy.cy   = cramped ? H * 0.42 : nameMidY
+      galaxy.R    = cramped
+        ? Math.min(W * 0.42, H * 0.3)
+        : Math.min(free * 0.56, H * 0.38)
+      galaxy.fade = cramped ? 0.32 : 1
+
+      const R = galaxy.R
+      const count = Math.round(Math.min(1900, Math.max(500, R * R * 0.045)))
+      stars = []
+      for (let i = 0; i < count; i++) {
+        const kind = Math.random()
+        let r, th, size, alpha
+        if (kind < 0.2) {
+          // Bulge: a dense, bright core
+          r     = Math.abs(randn()) * R * 0.14
+          th    = Math.random() * Math.PI * 2
+          size  = 0.9 + Math.random() * 0.8
+          alpha = 0.75 + Math.random() * 0.25
+        } else if (kind < 0.3) {
+          // Halo: loose stars filling the disc between the arms
+          r     = R * Math.sqrt(Math.random())
+          th    = Math.random() * Math.PI * 2
+          size  = 0.5 + Math.random() * 0.6
+          alpha = 0.15 + Math.random() * 0.3
+        } else {
+          // Arms: scatter tightens toward the rim so the spiral stays legible
+          const t = 0.06 + 0.94 * Math.pow(Math.random(), 0.8)
+          r     = R * t + randn() * R * 0.025
+          th    = (i % ARMS) * (Math.PI * 2 / ARMS) + t * TWIST + randn() * 0.28 * (1.1 - t)
+          size  = 0.6 + Math.random() * 0.9
+          alpha = 0.3 + Math.random() * 0.6 * (1 - t * 0.5)
+        }
+        // Stars burst out of the core on (re)build and spring into place
+        stars.push({ r, th, size, alpha, ox: galaxy.cx, oy: galaxy.cy,
+          x: galaxy.cx, y: galaxy.cy, vx: 0, vy: 0, depth: 1 })
+      }
+    }
+
+    // Spin the disc and project each star's orbit onto the tilted plane.
+    function placeStars(dt) {
+      galaxy.spin += SPIN_RATE * dt
+      const { cx, cy, spin } = galaxy
+      for (const s of stars) {
+        const a  = s.th + spin
+        const sa = Math.sin(a)
+        const x  = Math.cos(a) * s.r
+        const y  = sa * s.r * INCL
+        s.ox = cx + x * COS_T - y * SIN_T
+        s.oy = cy + x * SIN_T + y * COS_T
+        s.depth = 0.78 + 0.22 * sa // near side of the disc reads brighter
+      }
+    }
+
+    // The odd passer-by (UAV, rocket, asteroid, meteor) drawn in the same
+    // dots, in front of the page-wide StarfieldBackdrop. Everything here stays
+    // well below the name's alpha so it reads as background, and none of it
+    // moves when the user prefers reduced motion.
+    const REDUCED = prefersReducedMotion()
+    const CELL    = 4    // px between the dots that make up a sprite
+    let travellers = []
+    let trail = []       // meteor tail dots
+    let spawnIn = 2      // seconds until the next passer-by
+
+    function parseSprite(rows) {
+      const cells = []
+      const cx = (rows[0].length - 1) / 2, cy = (rows.length - 1) / 2
+      rows.forEach((row, j) => {
+        for (let i = 0; i < row.length; i++) {
+          if (row[i] === '#') cells.push([i - cx, j - cy])
+        }
+      })
+      return cells
+    }
+
+    // Drawn pointing right; rotated to its heading at draw time.
+    const ROCKET = parseSprite([
+      '##...........',
+      '.##########..',
+      '.#######.####',
+      '.##########..',
+      '##...........',
+    ])
+    const ROCKET_TAIL = -7.5 // cell offset of the exhaust, just behind the fins
+
+    // Top-down quadcopter: four rotors on an X frame.
+    const UAV = parseSprite([
+      '###.....###',
+      '###.....###',
+      '..#.....#..',
+      '...#...#...',
+      '....###....',
+      '....###....',
+      '...#...#...',
+      '..#.....#..',
+      '###.....###',
+      '###.....###',
+    ])
+
+    // Lumpy, cratered blob -- a fresh shape for every asteroid.
+    function rockCells(radius) {
+      const p1 = Math.random() * 6, p2 = Math.random() * 6
+      const cells = []
+      for (let j = -radius - 1; j <= radius + 1; j++) {
+        for (let i = -radius - 1; i <= radius + 1; i++) {
+          const ang  = Math.atan2(j, i)
+          const edge = radius * (1 + 0.22 * Math.sin(3 * ang + p1) + 0.12 * Math.sin(5 * ang + p2))
+          if (Math.hypot(i, j) <= edge && Math.random() > 0.1) cells.push([i, j])
+        }
+      }
+      return cells
+    }
+
+    function spawnTraveller(W, H) {
+      const roll = Math.random()
+      const fromLeft = Math.random() < 0.5
+      const dir = fromLeft ? 1 : -1
+
+      if (roll < 0.22) {
+        // UAV cruising level across the upper sky
+        const speed = 45 + Math.random() * 25
+        return { kind: 'uav', cells: UAV, x: fromLeft ? -40 : W + 40, y: H * (0.1 + Math.random() * 0.22),
+          vx: speed * dir, vy: 0, rot: 0, spin: 0, age: 0, alpha: 0.5 }
+      }
+      if (roll < 0.44) {
+        // Rocket climbing diagonally out of the lower half
+        const speed = 90 + Math.random() * 60
+        const climb = 0.25 + Math.random() * 0.35 // radians above horizontal
+        const vx = Math.cos(climb) * speed * dir, vy = -Math.sin(climb) * speed
+        return { kind: 'rocket', cells: ROCKET, x: fromLeft ? -50 : W + 50, y: H * (0.6 + Math.random() * 0.35),
+          vx, vy, rot: Math.atan2(vy, vx), spin: 0, age: 0, alpha: 0.55 }
+      }
+      if (roll < 0.72) {
+        // Asteroid tumbling slowly through
+        const speed = 14 + Math.random() * 18
+        return { kind: 'rock', cells: rockCells(3 + Math.floor(Math.random() * 3)),
+          x: fromLeft ? -60 : W + 60, y: H * (0.15 + Math.random() * 0.7),
+          vx: speed * dir, vy: (Math.random() - 0.5) * 10,
+          rot: Math.random() * 6, spin: (Math.random() - 0.5) * 0.6, age: 0, alpha: 0.42 }
+      }
+      // Meteor: small stone streaking down from the top, tail behind it
+      const speed = 260 + Math.random() * 140
+      const fall  = 0.35 + Math.random() * 0.35
+      return { kind: 'meteor', cells: rockCells(1), x: W * (0.15 + Math.random() * 0.85) , y: -20,
+        vx: Math.cos(fall) * speed * -dir, vy: Math.sin(fall) * speed,
+        rot: 0, spin: 2, age: 0, alpha: 0.75 }
+    }
+
+    function updateSpace(dt) {
+      if (REDUCED) return
+      const W = canvas.width, H = canvas.height
+
+      spawnIn -= dt
+      if (spawnIn <= 0 && travellers.length < 3) {
+        travellers.push(spawnTraveller(W, H))
+        spawnIn = 3 + Math.random() * 5
+      }
+
+      for (const t of travellers) {
+        t.age += dt
+        t.x   += t.vx * dt
+        t.y   += t.vy * dt
+        t.rot += t.spin * dt
+        if (t.kind === 'meteor') {
+          for (let k = 0; k < 3; k++) {
+            trail.push({ x: t.x + randn() * 1.5, y: t.y + randn() * 1.5,
+              vx: -t.vx * 0.04, vy: -t.vy * 0.04, life: 1 })
+          }
+        }
+      }
+      const M = 140
+      travellers = travellers.filter((t) =>
+        t.age < 1 || (t.x > -M && t.x < W + M && t.y > -M && t.y < H + M))
+
+      for (const p of trail) {
+        p.life -= dt / 0.9
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+      }
+      trail = trail.filter((p) => p.life > 0)
+    }
+
+    // All the cells share one fill, so they go down as a single path.
+    function drawCells(cells, x, y, rot, alpha, ch, size = 1.1) {
+      const c = Math.cos(rot), s = Math.sin(rot)
+      ctx.fillStyle = `rgba(${ch},${alpha.toFixed(2)})`
+      ctx.beginPath()
+      for (const [u, v] of cells) {
+        const px = x + (u * c - v * s) * CELL
+        const py = y + (u * s + v * c) * CELL
+        ctx.moveTo(px + size, py)
+        ctx.arc(px, py, size, 0, Math.PI * 2)
+      }
+      ctx.fill()
+    }
+
+    function drawSpace(ch) {
+      for (const p of trail) {
+        ctx.fillStyle = `rgba(${ch},${(p.life * 0.5).toFixed(2)})`
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, 0.5 + p.life * 0.9, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      for (const t of travellers) {
+        // Fade in over the first half second so nothing pops into view
+        const alpha = t.alpha * Math.min(1, t.age * 2)
+        drawCells(t.cells, t.x, t.y, t.rot, alpha, ch)
+
+        if (t.kind === 'rocket') {
+          // Flickering exhaust: a few random dots streaming off the tail
+          const flame = []
+          for (let k = 0; k < 7; k++) {
+            flame.push([ROCKET_TAIL - Math.random() * 5, randn() * 0.55])
+          }
+          drawCells(flame, t.x, t.y, t.rot, alpha * (0.5 + Math.random() * 0.4), ch, 0.9)
+        } else if (t.kind === 'uav' && Math.sin(t.age * 7) > 0.6) {
+          // Blinking nav light in the middle of the frame
+          drawCells([[0, 0]], t.x, t.y, 0, Math.min(1, alpha * 1.8), ch, 1.8)
+        }
+      }
     }
 
     // REPEL_STR, SPRING and DAMP were tuned by feel back when two rAF loops
@@ -519,8 +1107,8 @@ function HeroNameDots({ darkMode }) {
     // rather than dependent on which loop happened to start first.
     const SUBSTEPS = 2
 
-    function step() {
-      for (const d of dots) {
+    function step(list) {
+      for (const d of list) {
         const dx    = d.x - mouse.x
         const dy    = d.y - mouse.y
         const dist2 = dx * dx + dy * dy
@@ -544,6 +1132,28 @@ function HeroNameDots({ darkMode }) {
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       const ch = darkModeRef.current ? '255,255,255' : '0,0,0'
+
+      drawSpace(ch)
+
+      if (stars.length) {
+        const { cx, cy, R, fade } = galaxy
+        const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.45)
+        glow.addColorStop(0, `rgba(${ch},${(0.16 * fade).toFixed(3)})`)
+        glow.addColorStop(1, `rgba(${ch},0)`)
+        ctx.fillStyle = glow
+        ctx.beginPath()
+        ctx.arc(cx, cy, R * 0.45, 0, Math.PI * 2)
+        ctx.fill()
+
+        for (const s of stars) {
+          const a = s.alpha * s.depth * fade
+          ctx.fillStyle = `rgba(${ch},${a.toFixed(2)})`
+          ctx.beginPath()
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+
       for (const d of dots) {
         const spread = Math.hypot(d.x - d.ox, d.y - d.oy)
         const alpha  = Math.min(0.95, 0.72 + spread * 0.015)
@@ -554,8 +1164,17 @@ function HeroNameDots({ darkMode }) {
       }
     }
 
-    function tick() {
-      for (let n = 0; n < SUBSTEPS; n++) step()
+    function tick(now) {
+      // Clamped so the galaxy does not lurch after the loop was paused
+      // (hero scrolled away, tab in the background).
+      const dt = lastTick ? Math.min((now - lastTick) / 1000, 0.05) : 0
+      lastTick = now
+      updateSpace(dt)
+      placeStars(dt)
+      for (let n = 0; n < SUBSTEPS; n++) {
+        step(dots)
+        step(stars)
+      }
       draw()
       animId = requestAnimationFrame(tick)
     }
@@ -762,6 +1381,8 @@ function App() {
 
   return (
     <div className="portfolio" data-mode={darkMode ? 'dark' : 'light'}>
+      <StarfieldBackdrop darkMode={darkMode} />
+
       {/* Navigation */}
       <nav className="navbar">
         <button ref={menuBtnRef} className="menu-btn magnetic" onClick={() => setMenuOpen(true)} aria-label="Open menu">
@@ -1125,6 +1746,7 @@ function App() {
             </a>
           </div>
         </motion.div>
+        <ContactAstronaut darkMode={darkMode} />
       </section>
 
       {/* Footer */}
