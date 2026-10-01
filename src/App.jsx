@@ -14,13 +14,14 @@ import zfitLogo from './img/Zfit-logo.png'
 import resqLogo from './img/resq-logo.png'
 import ceylonLogo from './img/CeylonSC-logo.png'
 import redlinkLogo from './img/RedLink-logo.png'
+import edocLogo from './img/eDoc-logo.png'
 import './App.css'
 
 const PROJECTS = [
   {
     period: 'SEP 2026 — PRESENT',
     role: 'RedLink — Blood Donor Matching System',
-    company: 'Full-Stack Project · Ongoing',
+    company: 'Personal Project · Ongoing',
     logo: redlinkLogo,
     description:
       "Building a system that finds and ranks suitable blood donors for a hospital's urgent request in seconds, replacing manual phone calls. Created role-based access for admins, hospital staff, and donors, with donor contact details shared only after a donor accepts. Developing and testing secure REST APIs and deploying the full application live on the cloud with automated CI/CD.",
@@ -51,6 +52,7 @@ const PROJECTS = [
     period: 'FEB — APR 2026',
     role: 'eDoc — Smart Healthcare Platform',
     company: 'Microservices Architecture',
+    logo: edocLogo,
     description:
       'Cloud-native telemedicine platform for patient management and healthcare services. Designed and implemented the Patient Management Service handling profile management and medical report storage, alongside a Notification Service delivering real-time email and SMS alerts. Built RESTful APIs with Spring Boot following microservices architecture principles.',
     tags: ['Spring Boot', 'Java', 'Docker', 'Kubernetes', 'REST API', 'Microservices'],
@@ -69,7 +71,7 @@ const PROJECTS = [
   {
     period: 'APR 2026',
     role: 'StockUp — Cross-Platform Inventory System',
-    company: 'Desktop & Mobile Application',
+    company: 'Personal Project',
     description:
       'Architected a cross-platform inventory management system with dedicated desktop (Electron) and mobile (React Native / Expo) clients sharing a common offline-first data layer. Built an embedded SQLite data layer (better-sqlite3 / expo-sqlite) enabling full inventory tracking, search, and validation without any dependency on a remote backend. Designed responsive, platform-specific UIs with Tailwind CSS, optimizing layouts and interactions separately for desktop and mobile form factors.',
     tags: ['React', 'TypeScript', 'Electron', 'React Native', 'Expo', 'SQLite', 'Tailwind CSS', 'Vite'],
