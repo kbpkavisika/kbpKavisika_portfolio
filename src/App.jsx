@@ -27,6 +27,7 @@ const PROJECTS = [
       "Building a system that finds and ranks suitable blood donors for a hospital's urgent request in seconds, replacing manual phone calls. Created role-based access for admins, hospital staff, and donors, with donor contact details shared only after a donor accepts. Developing and testing secure REST APIs and deploying the full application live on the cloud with automated CI/CD.",
     tags: ['React', 'TypeScript', 'Vite', 'Java', 'Spring Boot', 'Spring Data JPA', 'Spring Security', 'JWT', 'PostgreSQL', 'REST API', 'GitHub Actions', 'Vercel', 'Render', 'Neon'],
     link: 'https://github.com/kbpkavisika/RedLink',
+    live: 'https://redlink-lk.vercel.app',
   },
   {
     period: 'JUL — OCT 2025',
@@ -358,16 +359,28 @@ function ProjectRow({ project, index }) {
                     <span key={t} className="slide-tag">{t}</span>
                   ))}
                 </div>
-                {project.link !== '#' && (
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="slide-link"
-                  >
-                    View Project <BsArrowRight />
-                  </a>
-                )}
+                <div className="slide-links">
+                  {project.live && (
+                    <a
+                      href={project.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="slide-link"
+                    >
+                      Live Site <BsArrowRight />
+                    </a>
+                  )}
+                  {project.link !== '#' && (
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="slide-link"
+                    >
+                      View Project <BsArrowRight />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
